@@ -20,6 +20,30 @@ import com.gardena.smartgarden.service.iapi.generated.model.ValveSetServiceDataI
  * device ID to create unified Device objects.
  */
 object DeviceMapper {
+
+  /**
+   * Wraps API response items into domain ServiceDataItem types.
+   *
+   * @param includedItems Raw API response items containing service data
+   * @return List of wrapped ServiceDataItem instances
+   */
+  private fun wrapServices(
+    includedItems: List<LocationResponseIncludedInner>
+  ): List<ServiceDataItem> =
+    includedItems.mapNotNull { item -> ServiceDataItem.wrap(item.actualInstance) }
+
+  /**
+   * Groups services by their device ID.
+   *
+   * Multiple services belong to the same physical device (identified by device ID). This function
+   * groups them together for unified device creation.
+   *
+   * @param services List of wrapped service items
+   * @return Map of device ID to list of services for that device
+   */
+  private fun groupByDeviceId(services: List<ServiceDataItem>): Map<String, List<ServiceDataItem>> =
+    services.groupBy { it.deviceId }
+
   /**
    * Maps a list of included items (services) from the API response to Device instances. Groups
    * services by device ID and creates appropriate device types.
@@ -30,8 +54,8 @@ object DeviceMapper {
   fun fromLocationResponse(includedItems: List<LocationResponseIncludedInner>?): List<Device> {
     if (includedItems == null) return emptyList()
 
-    val services = ServiceDataItem.fromLocationResponse(includedItems)
-    val servicesByDeviceId = ServiceDataItem.groupByDeviceId(services)
+    val services = wrapServices(includedItems)
+    val servicesByDeviceId = groupByDeviceId(services)
 
     return servicesByDeviceId.mapNotNull { (deviceId, wrappedServices) ->
       if (deviceId.isEmpty()) return@mapNotNull null

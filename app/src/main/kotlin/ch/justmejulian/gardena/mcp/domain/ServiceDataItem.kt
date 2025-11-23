@@ -5,7 +5,6 @@
 package ch.justmejulian.gardena.mcp.domain
 
 import com.gardena.smartgarden.service.iapi.generated.model.CommonServiceDataItem
-import com.gardena.smartgarden.service.iapi.generated.model.LocationResponseIncludedInner
 import com.gardena.smartgarden.service.iapi.generated.model.PowerSocketServiceDataItem
 import com.gardena.smartgarden.service.iapi.generated.model.SensorServiceDataItem
 import com.gardena.smartgarden.service.iapi.generated.model.ValveServiceDataItem
@@ -52,12 +51,5 @@ sealed class ServiceDataItem(val instance: Any) {
         is ValveServiceDataItem -> Valve(instance)
         else -> null
       }
-
-    fun fromLocationResponse(
-      includedItems: List<LocationResponseIncludedInner>
-    ): List<ServiceDataItem> = includedItems.mapNotNull { item -> wrap(item.actualInstance) }
-
-    fun groupByDeviceId(services: List<ServiceDataItem>): Map<String, List<ServiceDataItem>> =
-      services.groupBy { it.deviceId }
   }
 }
