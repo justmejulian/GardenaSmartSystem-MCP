@@ -46,8 +46,24 @@ data class ValveSetDevice(
   // List of individual valves
   val valves: List<Valve> = emptyList(),
 ) : Device {
-  val supportedCommands: Map<String, Command>
-    get() = ValveSetCommand.commands
+  override val supportedCommands: Map<String, Command>
+    get() = buildMap {
+      // Add ValveSet commands
+      putAll(ValveSetCommand.commands)
+
+      // Add valve-specific commands with suffixes
+      if (valves.size == 1) {
+        // Single valve - no suffix
+        putAll(ValveCommand.commands)
+      } else if (valves.size > 1) {
+        // Multiple valves - add suffix _1, _2, etc.
+        valves.forEachIndexed { index, _ ->
+          ValveCommand.commands.forEach { (commandName, command) ->
+            put("${commandName}_${index + 1}", command)
+          }
+        }
+      }
+    }
 
   override fun toString(): String =
     buildString {
