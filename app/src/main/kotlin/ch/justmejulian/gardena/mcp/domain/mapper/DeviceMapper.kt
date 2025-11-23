@@ -7,6 +7,7 @@ package ch.justmejulian.gardena.mcp.domain.mapper
 import ch.justmejulian.gardena.mcp.domain.device.*
 import com.gardena.smartgarden.service.iapi.generated.model.CommonServiceDataItem
 import com.gardena.smartgarden.service.iapi.generated.model.LocationResponseIncludedInner
+import com.gardena.smartgarden.service.iapi.generated.model.PowerSocketServiceDataItem
 import com.gardena.smartgarden.service.iapi.generated.model.SensorServiceDataItem
 
 /**
@@ -35,10 +36,14 @@ object DeviceMapper {
       // Find specific service types
       val commonService = serviceInstances.filterIsInstance<CommonServiceDataItem>().firstOrNull()
       val sensorService = serviceInstances.filterIsInstance<SensorServiceDataItem>().firstOrNull()
+      val powerSocketService =
+          serviceInstances.filterIsInstance<PowerSocketServiceDataItem>().firstOrNull()
 
       // Map to appropriate device type
       when {
         sensorService != null -> mapSensorDevice(deviceId, commonService, sensorService)
+        powerSocketService != null ->
+            mapPowerSocketDevice(deviceId, commonService, powerSocketService)
         else -> null
       }
     }
@@ -51,6 +56,7 @@ object DeviceMapper {
       when (instance) {
         is CommonServiceDataItem -> (instance.id ?: "").substringBefore(":")
         is SensorServiceDataItem -> (instance.id ?: "").substringBefore(":")
+        is PowerSocketServiceDataItem -> (instance.id ?: "").substringBefore(":")
         else -> ""
       }
 
@@ -62,6 +68,7 @@ object DeviceMapper {
         when (instance) {
           is CommonServiceDataItem -> instance to getDeviceId(instance)
           is SensorServiceDataItem -> instance to getDeviceId(instance)
+          is PowerSocketServiceDataItem -> instance to getDeviceId(instance)
           else -> null
         }
       }
@@ -87,6 +94,28 @@ object DeviceMapper {
         soilTemperature = sensorAttrs?.soilTemperature?.value,
         ambientTemperature = sensorAttrs?.ambientTemperature?.value,
         lightIntensity = sensorAttrs?.lightIntensity?.value,
+    )
+  }
+
+  private fun mapPowerSocketDevice(
+      deviceId: String,
+      commonService: CommonServiceDataItem?,
+      powerSocketService: PowerSocketServiceDataItem,
+  ): PowerSocketDevice {
+    val commonAttrs = commonService?.attributes
+    val powerSocketAttrs = powerSocketService.attributes
+
+    return PowerSocketDevice(
+        id = deviceId,
+        name = commonAttrs?.name?.value,
+        batteryLevel = commonAttrs?.batteryLevel?.value,
+        batteryState = commonAttrs?.batteryState?.value?.value,
+        rfLinkLevel = commonAttrs?.rfLinkLevel?.value,
+        rfLinkState = commonAttrs?.rfLinkState?.value?.value,
+        serial = commonAttrs?.serial?.value,
+        modelType = commonAttrs?.modelType?.value,
+        state = powerSocketAttrs?.state?.value?.value,
+        duration = powerSocketAttrs?.duration?.value,
     )
   }
 }
