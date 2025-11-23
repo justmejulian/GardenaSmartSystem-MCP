@@ -4,6 +4,9 @@
  */
 package ch.justmejulian.gardena.mcp.domain.device
 
+import ch.justmejulian.gardena.mcp.domain.command.Command
+import ch.justmejulian.gardena.mcp.domain.command.PowerSocketCommand
+
 /**
  * Power socket device combining COMMON and POWER_SOCKET services. Controls power outlets and tracks
  * duration of operation.
@@ -20,4 +23,7 @@ data class PowerSocketDevice(
   // POWER_SOCKET service attributes
   val state: String? = null,
   val duration: Int? = null,
-) : Device
+) : Device {
+  val supportedCommands: Map<String, Command>
+    get() = PowerSocketCommand.commands
+}

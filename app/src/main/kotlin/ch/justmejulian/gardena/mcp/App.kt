@@ -65,6 +65,19 @@ class App {
                   device.valves.forEach { valve ->
                     println("          - ${valve.name}: ${valve.state} (${valve.activity})")
                   }
+
+                  // Start Water Control device
+                  if (device.name == "Water Control") {
+                    println("\n        Starting Water Control device...")
+                    device.valves.firstOrNull()?.let { valve ->
+                      val startCommand = valve.supportedCommands["START_SECONDS_TO_OVERRIDE"]
+                      if (startCommand != null) {
+                        val request = startCommand.toRequest(3600) // Start for 1 hour
+                        service.sendCommand(valve.id, request)
+                        println("        Command sent to start ${valve.name} for 1 hour")
+                      }
+                    }
+                  }
                 }
               }
             }
