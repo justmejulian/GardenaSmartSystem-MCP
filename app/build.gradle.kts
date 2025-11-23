@@ -43,7 +43,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.example.AppKt"
+    mainClass = "ch.justmejulian.gardena.mcp.AppKt"
 }
 
 tasks.named<Test>("test") {
