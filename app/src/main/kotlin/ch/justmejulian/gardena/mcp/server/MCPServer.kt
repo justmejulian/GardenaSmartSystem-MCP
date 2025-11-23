@@ -2,7 +2,7 @@
  * Copyright (c) 2025 justmejulian
  * SPDX-License-Identifier: MIT
  */
-package ch.justmejulian.gardena.mcp
+package ch.justmejulian.gardena.mcp.server
 
 import ch.justmejulian.gardena.mcp.domain.device.*
 import ch.justmejulian.gardena.mcp.service.GardenaService
