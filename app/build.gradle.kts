@@ -17,12 +17,17 @@ plugins {
     
     // ktfmt plugin for Kotlin code formatting
     alias(libs.plugins.ktfmt)
+    
+    id("org.openapi.generator") version "7.11.0"
 }
 
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
 }
+
+val ktorVersion = "3.2.0"
+val jacksonVersion = "2.18.2"
 
 dependencies {
     // Kotlin Coroutines
@@ -36,10 +41,19 @@ dependencies {
     implementation("org.slf4j:slf4j-nop:$slf4jVersion")
     
     // Ktor Client
-    val ktorVersion = "3.2.0"
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+    
+    // Jackson for JSON serialization (required by generated Java client)
+    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
+    
+    // Dependencies for generated Java code
+    implementation("org.openapitools:jackson-databind-nullable:0.2.6")
+    implementation("jakarta.annotation:jakarta.annotation-api:3.0.0")
 
     // Use the Kotlin Test integration.
     testImplementation("org.jetbrains.kotlin:kotlin-test")
@@ -73,4 +87,36 @@ tasks.named<Test>("test") {
 ktfmt {
     // Use Google style (default is Kotlinlang)
     googleStyle()
+}
+
+// OpenAPI Generator configuration for Gardena Smart System API
+openApiGenerate {
+    generatorName.set("java")
+    inputSpec.set("$projectDir/src/main/resources/iapi-v2.yml")
+    outputDir.set("$projectDir/src/main/java/com/gardena/smartgarden/service/iapi/generated")
+    apiPackage.set("com.gardena.smartgarden.service.iapi.generated.api")
+    modelPackage.set("com.gardena.smartgarden.service.iapi.generated.model")
+    library.set("native")
+    globalProperties.set(mapOf(
+        "apiTests" to "false",
+        "modelTests" to "false"
+    ))
+    configOptions.set(mapOf(
+        "dateLibrary" to "java8",
+        "useJakartaEe" to "true"
+    ))
+}
+
+// Make Kotlin compilation depend on OpenAPI generation
+tasks.named("compileKotlin") {
+    dependsOn("openApiGenerate")
+}
+
+// Make ktfmt tasks depend on OpenAPI generation
+tasks.named("ktfmtCheckMain") {
+    dependsOn("openApiGenerate")
+}
+
+tasks.named("ktfmtFormatMain") {
+    dependsOn("openApiGenerate")
 }

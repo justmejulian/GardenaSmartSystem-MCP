@@ -5,6 +5,9 @@
 build
 kls_database.db
 
+# Generated Java code
+app/src/main/java
+
 # Tools
 .idea/
 AGENTS.md
