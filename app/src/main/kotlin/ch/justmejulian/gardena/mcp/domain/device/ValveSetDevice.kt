@@ -65,6 +65,9 @@ data class ValveSetDevice(
           appendLine("Valves:")
           valves.forEach { appendLine(it.toString()) }
         }
+        if (supportedCommands.isNotEmpty()) {
+          appendLine("Supported Commands: ${supportedCommands.keys.joinToString(", ")}")
+        }
       }
       .trimIndent()
 }

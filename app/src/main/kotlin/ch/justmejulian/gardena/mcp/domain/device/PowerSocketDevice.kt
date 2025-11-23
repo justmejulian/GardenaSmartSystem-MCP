@@ -24,7 +24,7 @@ data class PowerSocketDevice(
   val state: String? = null,
   val duration: Int? = null,
 ) : Device {
-  val supportedCommands: Map<String, Command>
+  override val supportedCommands: Map<String, Command>
     get() = PowerSocketCommand.commands
 
   override fun toString(): String =
@@ -40,6 +40,9 @@ data class PowerSocketDevice(
         rfLinkState?.let { appendLine("RF Link State: $it") }
         state?.let { appendLine("State: $it") }
         duration?.let { appendLine("Duration: ${it}s") }
+        if (supportedCommands.isNotEmpty()) {
+          appendLine("Supported Commands: ${supportedCommands.keys.joinToString(", ")}")
+        }
       }
       .trimIndent()
 }

@@ -4,6 +4,7 @@
  */
 package ch.justmejulian.gardena.mcp.server
 
+import ch.justmejulian.gardena.mcp.server.tools.CommandTools
 import ch.justmejulian.gardena.mcp.server.tools.DeviceTools
 import ch.justmejulian.gardena.mcp.server.tools.LocationTools
 import ch.justmejulian.gardena.mcp.service.GardenaService
@@ -52,6 +53,7 @@ class MCPServer(private val gardenaService: GardenaService) {
   private fun registerTools() {
     LocationTools.register(server, gardenaService)
     DeviceTools.register(server, gardenaService)
+    CommandTools.register(server, gardenaService)
   }
 
   /**

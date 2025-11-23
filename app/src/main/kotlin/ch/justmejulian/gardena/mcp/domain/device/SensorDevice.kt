@@ -4,6 +4,8 @@
  */
 package ch.justmejulian.gardena.mcp.domain.device
 
+import ch.justmejulian.gardena.mcp.domain.command.Command
+
 /**
  * Sensor device combining COMMON and SENSOR services. Provides environmental monitoring data like
  * soil humidity, temperature, and light intensity.
@@ -22,6 +24,7 @@ data class SensorDevice(
   val soilTemperature: Int? = null,
   val ambientTemperature: Int? = null,
   val lightIntensity: Int? = null,
+  override val supportedCommands: Map<String, Command> = emptyMap(),
 ) : Device {
   override fun toString(): String =
     buildString {
