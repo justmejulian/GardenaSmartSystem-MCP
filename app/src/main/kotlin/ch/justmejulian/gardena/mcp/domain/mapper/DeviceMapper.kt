@@ -9,6 +9,8 @@ import com.gardena.smartgarden.service.iapi.generated.model.CommonServiceDataIte
 import com.gardena.smartgarden.service.iapi.generated.model.LocationResponseIncludedInner
 import com.gardena.smartgarden.service.iapi.generated.model.PowerSocketServiceDataItem
 import com.gardena.smartgarden.service.iapi.generated.model.SensorServiceDataItem
+import com.gardena.smartgarden.service.iapi.generated.model.ValveServiceDataItem
+import com.gardena.smartgarden.service.iapi.generated.model.ValveSetServiceDataItem
 
 /**
  * Maps Gardena API responses to domain Device instances.
@@ -38,12 +40,17 @@ object DeviceMapper {
       val sensorService = serviceInstances.filterIsInstance<SensorServiceDataItem>().firstOrNull()
       val powerSocketService =
           serviceInstances.filterIsInstance<PowerSocketServiceDataItem>().firstOrNull()
+      val valveSetService =
+          serviceInstances.filterIsInstance<ValveSetServiceDataItem>().firstOrNull()
+      val valveServices = serviceInstances.filterIsInstance<ValveServiceDataItem>()
 
       // Map to appropriate device type
       when {
         sensorService != null -> mapSensorDevice(deviceId, commonService, sensorService)
         powerSocketService != null ->
             mapPowerSocketDevice(deviceId, commonService, powerSocketService)
+        valveSetService != null ->
+            mapValveSetDevice(deviceId, commonService, valveSetService, valveServices)
         else -> null
       }
     }
@@ -57,6 +64,8 @@ object DeviceMapper {
         is CommonServiceDataItem -> (instance.id ?: "").substringBefore(":")
         is SensorServiceDataItem -> (instance.id ?: "").substringBefore(":")
         is PowerSocketServiceDataItem -> (instance.id ?: "").substringBefore(":")
+        is ValveSetServiceDataItem -> (instance.id ?: "").substringBefore(":")
+        is ValveServiceDataItem -> (instance.id ?: "").substringBefore(":")
         else -> ""
       }
 
@@ -69,6 +78,8 @@ object DeviceMapper {
           is CommonServiceDataItem -> instance to getDeviceId(instance)
           is SensorServiceDataItem -> instance to getDeviceId(instance)
           is PowerSocketServiceDataItem -> instance to getDeviceId(instance)
+          is ValveSetServiceDataItem -> instance to getDeviceId(instance)
+          is ValveServiceDataItem -> instance to getDeviceId(instance)
           else -> null
         }
       }
@@ -116,6 +127,40 @@ object DeviceMapper {
         modelType = commonAttrs?.modelType?.value,
         state = powerSocketAttrs?.state?.value?.value,
         duration = powerSocketAttrs?.duration?.value,
+    )
+  }
+
+  private fun mapValveSetDevice(
+      deviceId: String,
+      commonService: CommonServiceDataItem?,
+      valveSetService: ValveSetServiceDataItem,
+      valveServices: List<ValveServiceDataItem>,
+  ): ValveSetDevice {
+    val commonAttrs = commonService?.attributes
+    val valveSetAttrs = valveSetService.attributes
+
+    val valves =
+        valveServices.map { valveService ->
+          val valveAttrs = valveService.attributes
+          Valve(
+              id = valveService.id ?: "",
+              name = valveAttrs?.name?.value,
+              state = valveAttrs?.state?.value?.value,
+              activity = valveAttrs?.activity?.value?.value,
+          )
+        }
+
+    return ValveSetDevice(
+        id = deviceId,
+        name = commonAttrs?.name?.value,
+        batteryLevel = commonAttrs?.batteryLevel?.value,
+        batteryState = commonAttrs?.batteryState?.value?.value,
+        rfLinkLevel = commonAttrs?.rfLinkLevel?.value,
+        rfLinkState = commonAttrs?.rfLinkState?.value?.value,
+        serial = commonAttrs?.serial?.value,
+        modelType = commonAttrs?.modelType?.value,
+        valveSetState = valveSetAttrs?.state?.value?.value,
+        valves = valves,
     )
   }
 }

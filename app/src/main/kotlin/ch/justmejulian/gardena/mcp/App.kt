@@ -6,6 +6,7 @@ package ch.justmejulian.gardena.mcp
 import ch.justmejulian.gardena.mcp.client.GardenaService
 import ch.justmejulian.gardena.mcp.domain.device.PowerSocketDevice
 import ch.justmejulian.gardena.mcp.domain.device.SensorDevice
+import ch.justmejulian.gardena.mcp.domain.device.ValveSetDevice
 import ch.justmejulian.gardena.mcp.domain.mapper.DeviceMapper
 import ch.justmejulian.gardena.mcp.util.Config
 import kotlinx.coroutines.runBlocking
@@ -62,6 +63,12 @@ class App {
                 is PowerSocketDevice -> {
                   println("        State: ${device.state}, Duration: ${device.duration}min")
                 }
+                is ValveSetDevice -> {
+                  println("        Valve Set State: ${device.valveSetState}")
+                  println("        Valves: ${device.valves.size}")
+                  device.valves.forEach { valve ->
+                    println("          - ${valve.name}: ${valve.state} (${valve.activity})")
+                  }
                 }
               }
             }
