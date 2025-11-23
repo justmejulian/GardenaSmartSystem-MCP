@@ -12,6 +12,9 @@ plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
     
+    // Kotlin serialization plugin for JSON support
+    kotlin("plugin.serialization") version "2.2.20"
+    
     // ktfmt plugin for Kotlin code formatting
     alias(libs.plugins.ktfmt)
 }
@@ -22,6 +25,22 @@ repositories {
 }
 
 dependencies {
+    // Kotlin Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+    
+    // Kotlin Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    
+    // SLF4J (logging)
+    val slf4jVersion = "2.0.17"
+    implementation("org.slf4j:slf4j-nop:$slf4jVersion")
+    
+    // Ktor Client
+    val ktorVersion = "3.2.0"
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+
     // Use the Kotlin Test integration.
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 

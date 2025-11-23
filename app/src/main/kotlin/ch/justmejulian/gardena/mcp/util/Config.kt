@@ -1,5 +1,12 @@
 package ch.justmejulian.gardena.mcp.util
 
+data class GardenaCredentials(val clientId: String, val clientSecret: String)
+
+enum class EnvVar(val key: String) {
+  GARDENA_CLIENT_ID("GARDENA_CLIENT_ID"),
+  GARDENA_CLIENT_SECRET("GARDENA_CLIENT_SECRET"),
+}
+
 object Config {
   /**
    * Loads environment variables by name.
@@ -24,9 +31,25 @@ object Config {
 
     if (missingVars.isNotEmpty()) {
       throw IllegalStateException(
-          "Missing required environment variable(s): ${missingVars.joinToString(", ")}")
+        "Missing required environment variable(s): ${missingVars.joinToString(", ")}"
+      )
     }
 
     return result
+  }
+
+  /**
+   * Loads Gardena API credentials from environment variables.
+   *
+   * @return GardenaCredentials
+   * @throws IllegalStateException if credentials are not set
+   */
+  fun loadGardenaCredentials(): GardenaCredentials {
+    val envVars = loadEnvVariables(EnvVar.entries.map { it.key })
+
+    return GardenaCredentials(
+      clientId = envVars.getValue(EnvVar.GARDENA_CLIENT_ID.key),
+      clientSecret = envVars.getValue(EnvVar.GARDENA_CLIENT_SECRET.key),
+    )
   }
 }

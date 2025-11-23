@@ -3,13 +3,40 @@
  */
 package ch.justmejulian.gardena.mcp
 
+import ch.justmejulian.gardena.mcp.client.HusqvarnaApiClient
+import ch.justmejulian.gardena.mcp.util.Config
+import kotlinx.coroutines.runBlocking
+
 class App {
-  val greeting: String
-    get() {
-      return "Hello World!"
+  suspend fun run() {
+    try {
+      // Load credentials from environment variables
+      val credentials = Config.loadGardenaCredentials()
+
+      // Create Husqvarna API client
+      val client = HusqvarnaApiClient(credentials.clientId, credentials.clientSecret)
+
+      try {
+        // Authenticate with Gardena API
+        println("Authenticating with Gardena API...")
+        val tokenResponse = client.authenticate()
+
+        println("Authentication successful!")
+        println("Access Token: ${tokenResponse.access_token.take(20)}...")
+        println("Token Type: ${tokenResponse.token_type}")
+        println("Expires In: ${tokenResponse.expires_in} seconds")
+        tokenResponse.scope?.let { println("Scope: $it") }
+      } finally {
+        // Always close the client
+        client.close()
+      }
+    } catch (e: IllegalStateException) {
+      System.err.println("Configuration Error: ${e.message}")
+    } catch (e: Exception) {
+      System.err.println("Error: ${e.message}")
+      e.printStackTrace()
     }
+  }
 }
 
-fun main() {
-  println(App().greeting)
-}
+fun main() = runBlocking { App().run() }
