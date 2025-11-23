@@ -2,9 +2,12 @@ package ch.justmejulian.gardena.mcp.util
 
 data class GardenaCredentials(val clientId: String, val clientSecret: String)
 
+data class ApiConfig(val authBaseUrl: String)
+
 enum class EnvVar(val key: String) {
   GARDENA_CLIENT_ID("GARDENA_CLIENT_ID"),
   GARDENA_CLIENT_SECRET("GARDENA_CLIENT_SECRET"),
+  GARDENA_AUTH_BASE_URL("GARDENA_AUTH_BASE_URL"),
 }
 
 object Config {
@@ -39,17 +42,44 @@ object Config {
   }
 
   /**
+   * Loads an optional environment variable.
+   *
+   * @param varName Name of the environment variable
+   * @param defaultValue Default value if the variable is not set
+   * @return The environment variable value or the default value
+   */
+  fun loadOptionalEnvVariable(varName: String, defaultValue: String): String {
+    return System.getenv(varName)?.takeIf { it.isNotBlank() } ?: defaultValue
+  }
+
+  /**
    * Loads Gardena API credentials from environment variables.
    *
    * @return GardenaCredentials
    * @throws IllegalStateException if credentials are not set
    */
   fun loadGardenaCredentials(): GardenaCredentials {
-    val envVars = loadEnvVariables(EnvVar.entries.map { it.key })
+    val envVars =
+      loadEnvVariables(listOf(EnvVar.GARDENA_CLIENT_ID.key, EnvVar.GARDENA_CLIENT_SECRET.key))
 
     return GardenaCredentials(
       clientId = envVars.getValue(EnvVar.GARDENA_CLIENT_ID.key),
       clientSecret = envVars.getValue(EnvVar.GARDENA_CLIENT_SECRET.key),
+    )
+  }
+
+  /**
+   * Loads API configuration from environment variables with defaults.
+   *
+   * @return ApiConfig
+   */
+  fun loadApiConfig(): ApiConfig {
+    return ApiConfig(
+      authBaseUrl =
+        loadOptionalEnvVariable(
+          EnvVar.GARDENA_AUTH_BASE_URL.key,
+          "https://api.authentication.husqvarnagroup.dev/v1",
+        ),
     )
   }
 }

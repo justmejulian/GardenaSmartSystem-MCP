@@ -12,9 +12,11 @@ class App {
     try {
       // Load credentials from environment variables
       val credentials = Config.loadGardenaCredentials()
+      val apiConfig = Config.loadApiConfig()
 
       // Create Husqvarna API client
-      val client = HusqvarnaApiClient(credentials.clientId, credentials.clientSecret)
+      val client =
+        HusqvarnaApiClient(credentials.clientId, credentials.clientSecret, apiConfig.authBaseUrl)
 
       try {
         // Authenticate with Gardena API

@@ -26,8 +26,11 @@ data class TokenResponse(
 @Serializable
 data class ErrorResponse(val error: String? = null, val error_description: String? = null)
 
-class HusqvarnaApiClient(private val clientId: String, private val clientSecret: String) {
-  private val authBaseUrl = "https://api.authentication.husqvarnagroup.dev/v1"
+class HusqvarnaApiClient(
+  private val clientId: String,
+  private val clientSecret: String,
+  private val authBaseUrl: String = "https://api.authentication.husqvarnagroup.dev/v1",
+) {
 
   private val httpClient =
     HttpClient(CIO) {
