@@ -4,9 +4,6 @@
 package ch.justmejulian.gardena.mcp
 
 import ch.justmejulian.gardena.mcp.client.GardenaService
-import ch.justmejulian.gardena.mcp.domain.device.PowerSocketDevice
-import ch.justmejulian.gardena.mcp.domain.device.SensorDevice
-import ch.justmejulian.gardena.mcp.domain.device.ValveSetDevice
 import ch.justmejulian.gardena.mcp.util.Config
 import kotlinx.coroutines.runBlocking
 
@@ -18,7 +15,7 @@ class App {
       val apiConfig = Config.loadApiConfig()
 
       // Create Gardena service
-      val service =
+      val gardenaService =
         GardenaService(
           credentials.clientId,
           credentials.clientSecret,
@@ -26,67 +23,10 @@ class App {
           apiConfig.apiBaseUrl,
         )
 
-      try {
-        // Check API health
-        println("Checking API health...")
-        val isHealthy = service.healthCheck()
-        println("API Health: ${if (isHealthy) "OK" else "FAILED"}")
-
-        if (isHealthy) {
-          // Get all locations
-          println("\nFetching locations...")
-          val locations = service.getLocations()
-
-          println("Found ${locations.data.size} location(s):")
-          locations.data.forEach { location ->
-            println("  - Location ID: ${location.id}")
-            location.attributes?.name?.let { println("    Name: $it") }
-
-            // Fetch devices for this location
-            println("\n    Fetching devices...")
-            val devices = service.getDevices(location.id)
-            println("    Found ${devices.size} device(s):")
-
-            devices.forEach { device ->
-              println("      - Device: ${device.name} (${device.modelType})")
-              println("        Battery: ${device.batteryLevel}%, Signal: ${device.rfLinkLevel}%")
-              when (device) {
-                is SensorDevice -> {
-                  println(
-                    "        Soil: ${device.soilHumidity}%, Temp: ${device.soilTemperature}°C"
-                  )
-                }
-                is PowerSocketDevice -> {
-                  println("        State: ${device.state}, Duration: ${device.duration}min")
-                }
-                is ValveSetDevice -> {
-                  println("        Valve Set State: ${device.valveSetState}")
-                  println("        Valves: ${device.valves.size}")
-                  device.valves.forEach { valve ->
-                    println("          - ${valve.name}: ${valve.state} (${valve.activity})")
-                  }
-
-                  // Start Water Control device
-                  if (device.name == "Water Control") {
-                    println("\n        Starting Water Control device...")
-                    device.valves.firstOrNull()?.let { valve ->
-                      val startCommand = valve.supportedCommands["START_SECONDS_TO_OVERRIDE"]
-                      if (startCommand != null) {
-                        val request = startCommand.toRequest(3600) // Start for 1 hour
-                        service.sendCommand(valve.id, request)
-                        println("        Command sent to start ${valve.name} for 1 hour")
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      } finally {
-        // Always close the service
-        service.close()
-      }
+      // Start MCP server - authentication will happen lazily on first tool call
+      System.err.println("Starting MCP server...")
+      val mcpServer = MCPServer(gardenaService)
+      mcpServer.run()
     } catch (e: IllegalStateException) {
       System.err.println("Configuration Error: ${e.message}")
     } catch (e: Exception) {

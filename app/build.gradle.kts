@@ -19,6 +19,9 @@ plugins {
     alias(libs.plugins.ktfmt)
     
     id("org.openapi.generator") version "7.11.0"
+    
+    // Shadow plugin for creating fat JARs
+    id("com.gradleup.shadow") version "9.2.2"
 }
 
 repositories {
@@ -36,6 +39,9 @@ dependencies {
     // Kotlin Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     
+    // MCP SDK
+    implementation("io.modelcontextprotocol:kotlin-sdk:0.7.5")
+    
     // SLF4J (logging)
     val slf4jVersion = "2.0.17"
     implementation("org.slf4j:slf4j-nop:$slf4jVersion")
@@ -45,6 +51,10 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+    
+    // Ktor Server (required by MCP SDK)
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-sse:$ktorVersion")
     
     // Jackson for JSON serialization (required by generated Java client)
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")

@@ -45,7 +45,6 @@ class HusqvarnaApiClient(
     }
 
   suspend fun authenticate(): TokenResponse {
-    println("Authenticating to $authBaseUrl")
     val response =
       httpClient.post("$authBaseUrl/oauth2/token") {
         contentType(ContentType.Application.FormUrlEncoded)
@@ -67,7 +66,6 @@ class HusqvarnaApiClient(
       )
     }
 
-    println("Authentication was successful")
     return response.body<TokenResponse>()
   }
 
