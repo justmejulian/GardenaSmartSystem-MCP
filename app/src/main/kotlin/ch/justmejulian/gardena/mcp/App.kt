@@ -3,7 +3,7 @@
  */
 package ch.justmejulian.gardena.mcp
 
-import ch.justmejulian.gardena.mcp.client.HusqvarnaApiClient
+import ch.justmejulian.gardena.mcp.client.GardenaService
 import ch.justmejulian.gardena.mcp.util.Config
 import kotlinx.coroutines.runBlocking
 
@@ -14,23 +14,35 @@ class App {
       val credentials = Config.loadGardenaCredentials()
       val apiConfig = Config.loadApiConfig()
 
-      // Create Husqvarna API client
-      val client =
-        HusqvarnaApiClient(credentials.clientId, credentials.clientSecret, apiConfig.authBaseUrl)
+      // Create Gardena service
+      val service =
+        GardenaService(
+          credentials.clientId,
+          credentials.clientSecret,
+          apiConfig.authBaseUrl,
+          apiConfig.apiBaseUrl,
+        )
 
       try {
-        // Authenticate with Gardena API
-        println("Authenticating with Gardena API...")
-        val tokenResponse = client.authenticate()
+        // Check API health
+        println("Checking API health...")
+        val isHealthy = service.healthCheck()
+        println("API Health: ${if (isHealthy) "OK" else "FAILED"}")
 
-        println("Authentication successful!")
-        println("Access Token: ${tokenResponse.access_token.take(20)}...")
-        println("Token Type: ${tokenResponse.token_type}")
-        println("Expires In: ${tokenResponse.expires_in} seconds")
-        tokenResponse.scope?.let { println("Scope: $it") }
+        if (isHealthy) {
+          // Get all locations
+          println("\nFetching locations...")
+          val locations = service.getLocations()
+
+          println("Found ${locations.data.size} location(s):")
+          locations.data.forEach { location ->
+            println("  - Location ID: ${location.id}")
+            location.attributes?.name?.let { println("    Name: $it") }
+          }
+        }
       } finally {
-        // Always close the client
-        client.close()
+        // Always close the service
+        service.close()
       }
     } catch (e: IllegalStateException) {
       System.err.println("Configuration Error: ${e.message}")

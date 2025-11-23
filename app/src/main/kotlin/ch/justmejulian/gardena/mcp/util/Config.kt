@@ -2,12 +2,13 @@ package ch.justmejulian.gardena.mcp.util
 
 data class GardenaCredentials(val clientId: String, val clientSecret: String)
 
-data class ApiConfig(val authBaseUrl: String)
+data class ApiConfig(val authBaseUrl: String, val apiBaseUrl: String)
 
 enum class EnvVar(val key: String) {
   GARDENA_CLIENT_ID("GARDENA_CLIENT_ID"),
   GARDENA_CLIENT_SECRET("GARDENA_CLIENT_SECRET"),
   GARDENA_AUTH_BASE_URL("GARDENA_AUTH_BASE_URL"),
+  GARDENA_API_BASE_URL("GARDENA_API_BASE_URL"),
 }
 
 object Config {
@@ -80,6 +81,8 @@ object Config {
           EnvVar.GARDENA_AUTH_BASE_URL.key,
           "https://api.authentication.husqvarnagroup.dev/v1",
         ),
+      apiBaseUrl =
+        loadOptionalEnvVariable(EnvVar.GARDENA_API_BASE_URL.key, "https://api.smart.gardena.dev/v2"),
     )
   }
 }
