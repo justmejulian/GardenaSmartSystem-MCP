@@ -7,7 +7,6 @@ import ch.justmejulian.gardena.mcp.client.GardenaService
 import ch.justmejulian.gardena.mcp.domain.device.PowerSocketDevice
 import ch.justmejulian.gardena.mcp.domain.device.SensorDevice
 import ch.justmejulian.gardena.mcp.domain.device.ValveSetDevice
-import ch.justmejulian.gardena.mcp.domain.mapper.DeviceMapper
 import ch.justmejulian.gardena.mcp.util.Config
 import kotlinx.coroutines.runBlocking
 
@@ -45,10 +44,7 @@ class App {
 
             // Fetch devices for this location
             println("\n    Fetching devices...")
-            val locationDetails = service.getLocation(location.id)
-
-            // Map devices from included services
-            val devices = DeviceMapper.fromLocationResponse(locationDetails.included)
+            val devices = service.getDevices(location.id)
             println("    Found ${devices.size} device(s):")
 
             devices.forEach { device ->

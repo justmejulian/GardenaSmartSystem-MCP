@@ -4,6 +4,8 @@
  */
 package ch.justmejulian.gardena.mcp.client
 
+import ch.justmejulian.gardena.mcp.domain.device.Device
+import ch.justmejulian.gardena.mcp.domain.mapper.DeviceMapper
 import com.gardena.smartgarden.service.iapi.generated.ApiClient
 import com.gardena.smartgarden.service.iapi.generated.api.HealthCheckApi
 import com.gardena.smartgarden.service.iapi.generated.api.SnapshotApi
@@ -87,6 +89,18 @@ class GardenaService(
     withContext(Dispatchers.IO) {
       val snapshotApi = SnapshotApi(getClient())
       snapshotApi.listLocation(locationId)
+    }
+
+  /**
+   * Get all devices for a specific location.
+   *
+   * @param locationId The ID of the location to fetch devices for
+   * @return List of Device instances mapped from the location's services
+   */
+  suspend fun getDevices(locationId: String): List<Device> =
+    withContext(Dispatchers.IO) {
+      val locationDetails = getLocation(locationId)
+      DeviceMapper.fromLocationResponse(locationDetails.included)
     }
 
   /** Close the authentication client and clean up resources. */
