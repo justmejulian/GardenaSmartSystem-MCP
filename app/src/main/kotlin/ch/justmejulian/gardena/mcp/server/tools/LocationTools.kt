@@ -25,16 +25,6 @@ object LocationTools {
    * @param gardenaService Service for interacting with Gardena API
    */
   fun register(server: Server, gardenaService: GardenaService) {
-    registerListLocations(server, gardenaService)
-  }
-
-  /**
-   * Tool: list_locations
-   *
-   * Retrieves all locations for the authenticated user. Each location represents a physical garden
-   * or property managed through the Gardena Smart System.
-   */
-  private fun registerListLocations(server: Server, gardenaService: GardenaService) {
     server.addTool(
       name = "list_locations",
       description = "Get all locations for the authenticated user",

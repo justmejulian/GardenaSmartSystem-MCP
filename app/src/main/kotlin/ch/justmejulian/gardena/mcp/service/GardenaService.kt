@@ -107,6 +107,21 @@ class GardenaService(
     }
 
   /**
+   * Get specific device for a specific location.
+   *
+   * @param locationId The ID of the location to fetch devices for
+   * @param deviceId
+   * @return Device
+   */
+  suspend fun getDevice(locationId: String, deviceId: String): Device? =
+    withContext(Dispatchers.IO) {
+      val locationDetails = getLocation(locationId)
+      val devices = DeviceMapper.fromLocationResponse(locationDetails.included)
+
+      devices.find { it.id == deviceId }
+    }
+
+  /**
    * Send a command to a device service.
    *
    * @param serviceId The ID of the service to send the command to
