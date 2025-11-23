@@ -4,6 +4,7 @@
 [versions]
 guava = "33.4.6-jre"
 junit-jupiter-engine = "5.12.1"
+ktfmt-gradle = "0.21.0"
 
 [libraries]
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
@@ -11,3 +12,4 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", vers
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.2.20" }
+ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt-gradle" }

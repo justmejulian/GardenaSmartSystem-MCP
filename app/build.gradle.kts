@@ -11,6 +11,9 @@ plugins {
 
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    
+    // ktfmt plugin for Kotlin code formatting
+    alias(libs.plugins.ktfmt)
 }
 
 repositories {
@@ -46,4 +49,9 @@ application {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+ktfmt {
+    // Use Google style (default is Kotlinlang)
+    googleStyle()
 }
