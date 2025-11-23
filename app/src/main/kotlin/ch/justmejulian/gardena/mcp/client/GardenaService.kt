@@ -7,6 +7,7 @@ package ch.justmejulian.gardena.mcp.client
 import com.gardena.smartgarden.service.iapi.generated.ApiClient
 import com.gardena.smartgarden.service.iapi.generated.api.HealthCheckApi
 import com.gardena.smartgarden.service.iapi.generated.api.SnapshotApi
+import com.gardena.smartgarden.service.iapi.generated.model.LocationResponse
 import com.gardena.smartgarden.service.iapi.generated.model.LocationsResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -74,6 +75,18 @@ class GardenaService(
     withContext(Dispatchers.IO) {
       val snapshotApi = SnapshotApi(getClient())
       snapshotApi.listLocations()
+    }
+
+  /**
+   * Get location details including all devices and services.
+   *
+   * @param locationId The ID of the location to fetch
+   * @return LocationResponse containing location data and included devices/services
+   */
+  suspend fun getLocation(locationId: String): LocationResponse =
+    withContext(Dispatchers.IO) {
+      val snapshotApi = SnapshotApi(getClient())
+      snapshotApi.listLocation(locationId)
     }
 
   /** Close the authentication client and clean up resources. */

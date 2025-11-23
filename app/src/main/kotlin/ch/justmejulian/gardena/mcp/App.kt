@@ -38,6 +38,17 @@ class App {
           locations.data.forEach { location ->
             println("  - Location ID: ${location.id}")
             location.attributes?.name?.let { println("    Name: $it") }
+
+            // Fetch devices for this location
+            println("\n    Fetching devices...")
+            val locationDetails = service.getLocation(location.id)
+
+            val devices =
+              locationDetails.included?.filter { it.actualInstance.toString().contains("Device") }
+            println("    Found ${devices?.size ?: 0} device(s):")
+            devices?.forEach { device ->
+              println("      - Device: ${device.actualInstance}")
+            }
           }
         }
       } finally {
