@@ -4,6 +4,8 @@
 package ch.justmejulian.gardena.mcp
 
 import ch.justmejulian.gardena.mcp.client.GardenaService
+import ch.justmejulian.gardena.mcp.domain.device.SensorDevice
+import ch.justmejulian.gardena.mcp.domain.mapper.DeviceMapper
 import ch.justmejulian.gardena.mcp.util.Config
 import kotlinx.coroutines.runBlocking
 
@@ -43,11 +45,21 @@ class App {
             println("\n    Fetching devices...")
             val locationDetails = service.getLocation(location.id)
 
-            val devices =
-              locationDetails.included?.filter { it.actualInstance.toString().contains("Device") }
-            println("    Found ${devices?.size ?: 0} device(s):")
-            devices?.forEach { device ->
-              println("      - Device: ${device.actualInstance}")
+            // Map devices from included services
+            val devices = DeviceMapper.fromLocationResponse(locationDetails.included)
+            println("    Found ${devices.size} device(s):")
+
+            devices.forEach { device ->
+              println("      - Device: ${device.name} (${device.modelType})")
+              println("        Battery: ${device.batteryLevel}%, Signal: ${device.rfLinkLevel}%")
+              when (device) {
+                is SensorDevice -> {
+                  println(
+                    "        Soil: ${device.soilHumidity}%, Temp: ${device.soilTemperature}°C"
+                  )
+                }
+                }
+              }
             }
           }
         }
