@@ -4,6 +4,7 @@
  */
 package ch.justmejulian.gardena.mcp.domain.mapper
 
+import ch.justmejulian.gardena.mcp.domain.ServiceDataItem
 import ch.justmejulian.gardena.mcp.domain.device.*
 import com.gardena.smartgarden.service.iapi.generated.model.CommonServiceDataItem
 import com.gardena.smartgarden.service.iapi.generated.model.LocationResponseIncludedInner
@@ -29,56 +30,31 @@ object DeviceMapper {
   fun fromLocationResponse(includedItems: List<LocationResponseIncludedInner>?): List<Device> {
     if (includedItems == null) return emptyList()
 
-    val services = extractServices(includedItems)
-    val servicesByDeviceId = groupServicesByDeviceId(services)
+    val services = ServiceDataItem.fromLocationResponse(includedItems)
+    val servicesByDeviceId = ServiceDataItem.groupByDeviceId(services)
 
-    return servicesByDeviceId.mapNotNull { (deviceId, serviceInstances) ->
+    return servicesByDeviceId.mapNotNull { (deviceId, wrappedServices) ->
       if (deviceId.isEmpty()) return@mapNotNull null
 
-      val commonService = serviceInstances.filterIsInstance<CommonServiceDataItem>().firstOrNull()
+      val commonService =
+        wrappedServices.filterIsInstance<ServiceDataItem.Common>().firstOrNull()?.item
 
       // Pattern match on service types to find the first mappable device
-      serviceInstances.firstNotNullOfOrNull { service ->
+      wrappedServices.firstNotNullOfOrNull { service ->
         when (service) {
-          is SensorServiceDataItem -> mapSensorDevice(deviceId, commonService, service)
-          is PowerSocketServiceDataItem -> mapPowerSocketDevice(deviceId, commonService, service)
-          is ValveSetServiceDataItem -> {
-            val valveServices = serviceInstances.filterIsInstance<ValveServiceDataItem>()
-            mapValveSetDevice(deviceId, commonService, service, valveServices)
+          is ServiceDataItem.Sensor -> mapSensorDevice(deviceId, commonService, service.item)
+          is ServiceDataItem.PowerSocket ->
+            mapPowerSocketDevice(deviceId, commonService, service.item)
+          is ServiceDataItem.ValveSet -> {
+            val valveServices =
+              wrappedServices.filterIsInstance<ServiceDataItem.Valve>().map { it.item }
+            mapValveSetDevice(deviceId, commonService, service.item, valveServices)
           }
           else -> null
         }
       }
     }
   }
-
-  private fun groupServicesByDeviceId(services: List<Pair<Any, String>>): Map<String, List<Any>> =
-    services.groupBy({ it.second }, { it.first })
-
-  private fun getDeviceId(instance: Any): String =
-    when (instance) {
-      is CommonServiceDataItem -> (instance.id ?: "").substringBefore(":")
-      is SensorServiceDataItem -> (instance.id ?: "").substringBefore(":")
-      is PowerSocketServiceDataItem -> (instance.id ?: "").substringBefore(":")
-      is ValveSetServiceDataItem -> (instance.id ?: "").substringBefore(":")
-      is ValveServiceDataItem -> (instance.id ?: "").substringBefore(":")
-      else -> ""
-    }
-
-  private fun extractServices(
-    includedItems: List<LocationResponseIncludedInner>
-  ): List<Pair<Any, String>> =
-    includedItems.mapNotNull { item ->
-      val instance = item.actualInstance
-      when (instance) {
-        is CommonServiceDataItem -> instance to getDeviceId(instance)
-        is SensorServiceDataItem -> instance to getDeviceId(instance)
-        is PowerSocketServiceDataItem -> instance to getDeviceId(instance)
-        is ValveSetServiceDataItem -> instance to getDeviceId(instance)
-        is ValveServiceDataItem -> instance to getDeviceId(instance)
-        else -> null
-      }
-    }
 
   private fun mapSensorDevice(
     deviceId: String,
