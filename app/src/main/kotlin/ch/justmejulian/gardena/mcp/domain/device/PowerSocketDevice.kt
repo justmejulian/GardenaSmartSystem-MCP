@@ -26,4 +26,20 @@ data class PowerSocketDevice(
 ) : Device {
   val supportedCommands: Map<String, Command>
     get() = PowerSocketCommand.commands
+
+  override fun toString(): String =
+    buildString {
+        appendLine("Device: ${name ?: "Unknown"}")
+        appendLine("ID: $id")
+        appendLine("Type: PowerSocketDevice")
+        serial?.let { appendLine("Serial: $it") }
+        modelType?.let { appendLine("Model: $it") }
+        batteryLevel?.let { appendLine("Battery: $it%") }
+        batteryState?.let { appendLine("Battery State: $it") }
+        rfLinkLevel?.let { appendLine("RF Link Level: $it") }
+        rfLinkState?.let { appendLine("RF Link State: $it") }
+        state?.let { appendLine("State: $it") }
+        duration?.let { appendLine("Duration: ${it}s") }
+      }
+      .trimIndent()
 }

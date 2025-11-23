@@ -20,6 +20,12 @@ data class Valve(
 ) {
   val supportedCommands: Map<String, Command>
     get() = ValveCommand.commands
+
+  override fun toString(): String = buildString {
+    append("  - ${name ?: "Unknown"} (ID: $id)")
+    state?.let { append(", State: $it") }
+    activity?.let { append(", Activity: $it") }
+  }
 }
 
 /**
@@ -42,4 +48,23 @@ data class ValveSetDevice(
 ) : Device {
   val supportedCommands: Map<String, Command>
     get() = ValveSetCommand.commands
+
+  override fun toString(): String =
+    buildString {
+        appendLine("Device: ${name ?: "Unknown"}")
+        appendLine("ID: $id")
+        appendLine("Type: ValveSetDevice")
+        serial?.let { appendLine("Serial: $it") }
+        modelType?.let { appendLine("Model: $it") }
+        batteryLevel?.let { appendLine("Battery: $it%") }
+        batteryState?.let { appendLine("Battery State: $it") }
+        rfLinkLevel?.let { appendLine("RF Link Level: $it") }
+        rfLinkState?.let { appendLine("RF Link State: $it") }
+        valveSetState?.let { appendLine("Valve Set State: $it") }
+        if (valves.isNotEmpty()) {
+          appendLine("Valves:")
+          valves.forEach { appendLine(it.toString()) }
+        }
+      }
+      .trimIndent()
 }

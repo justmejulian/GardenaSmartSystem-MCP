@@ -3,7 +3,7 @@
  */
 package ch.justmejulian.gardena.mcp
 
-import ch.justmejulian.gardena.mcp.client.GardenaService
+import ch.justmejulian.gardena.mcp.service.GardenaService
 import ch.justmejulian.gardena.mcp.util.Config
 import kotlinx.coroutines.runBlocking
 

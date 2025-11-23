@@ -4,8 +4,8 @@
  */
 package ch.justmejulian.gardena.mcp
 
-import ch.justmejulian.gardena.mcp.client.GardenaService
 import ch.justmejulian.gardena.mcp.domain.device.*
+import ch.justmejulian.gardena.mcp.service.GardenaService
 import io.modelcontextprotocol.kotlin.sdk.*
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
@@ -109,7 +109,7 @@ class MCPServer(private val gardenaService: GardenaService) {
       }
 
       val devices = gardenaService.getDevices(locationId)
-      val deviceList = devices.map { device -> formatDevice(device) }
+      val deviceList = devices.map { it.toString() }
 
       CallToolResult(
         content = listOf(TextContent(text = deviceList.joinToString("\n---\n"))),
@@ -117,51 +117,6 @@ class MCPServer(private val gardenaService: GardenaService) {
       )
     }
   }
-
-  /**
-   * Format a device for display based on its type.
-   *
-   * @param device The device to format
-   * @return Formatted string representation of the device
-   */
-  private fun formatDevice(device: Device): String =
-    buildString {
-        appendLine("Device: ${device.name ?: "Unknown"}")
-        appendLine("ID: ${device.id}")
-        appendLine("Type: ${device::class.simpleName}")
-
-        device.serial?.let { appendLine("Serial: $it") }
-        device.modelType?.let { appendLine("Model: $it") }
-        device.batteryLevel?.let { appendLine("Battery: $it%") }
-        device.batteryState?.let { appendLine("Battery State: $it") }
-        device.rfLinkLevel?.let { appendLine("RF Link Level: $it") }
-        device.rfLinkState?.let { appendLine("RF Link State: $it") }
-
-        when (device) {
-          is PowerSocketDevice -> {
-            device.state?.let { appendLine("State: $it") }
-            device.duration?.let { appendLine("Duration: ${it}s") }
-          }
-          is SensorDevice -> {
-            device.soilHumidity?.let { appendLine("Soil Humidity: $it%") }
-            device.soilTemperature?.let { appendLine("Soil Temperature: ${it}°C") }
-            device.ambientTemperature?.let { appendLine("Ambient Temperature: ${it}°C") }
-            device.lightIntensity?.let { appendLine("Light Intensity: $it lux") }
-          }
-          is ValveSetDevice -> {
-            device.valveSetState?.let { appendLine("Valve Set State: $it") }
-            if (device.valves.isNotEmpty()) {
-              appendLine("Valves:")
-              device.valves.forEach { valve ->
-                appendLine("  - ${valve.name ?: "Valve ${valve.id}"}")
-                valve.state?.let { appendLine("    State: $it") }
-                valve.activity?.let { appendLine("    Activity: $it") }
-              }
-            }
-          }
-        }
-      }
-      .trimIndent()
 
   /**
    * Run the MCP server with stdio transport.

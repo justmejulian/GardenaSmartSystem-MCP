@@ -22,4 +22,22 @@ data class SensorDevice(
   val soilTemperature: Int? = null,
   val ambientTemperature: Int? = null,
   val lightIntensity: Int? = null,
-) : Device
+) : Device {
+  override fun toString(): String =
+    buildString {
+        appendLine("Device: ${name ?: "Unknown"}")
+        appendLine("ID: $id")
+        appendLine("Type: SensorDevice")
+        serial?.let { appendLine("Serial: $it") }
+        modelType?.let { appendLine("Model: $it") }
+        batteryLevel?.let { appendLine("Battery: $it%") }
+        batteryState?.let { appendLine("Battery State: $it") }
+        rfLinkLevel?.let { appendLine("RF Link Level: $it") }
+        rfLinkState?.let { appendLine("RF Link State: $it") }
+        soilHumidity?.let { appendLine("Soil Humidity: $it%") }
+        soilTemperature?.let { appendLine("Soil Temperature: ${it}°C") }
+        ambientTemperature?.let { appendLine("Ambient Temperature: ${it}°C") }
+        lightIntensity?.let { appendLine("Light Intensity: ${it} lux") }
+      }
+      .trimIndent()
+}
