@@ -2,8 +2,9 @@
  * Copyright (c) 2025 justmejulian
  * SPDX-License-Identifier: MIT
  */
-package ch.justmejulian.gardena.mcp.client
+package ch.justmejulian.gardena.mcp.service
 
+import ch.justmejulian.gardena.mcp.client.HusqvarnaApiClient
 import ch.justmejulian.gardena.mcp.domain.device.Device
 import ch.justmejulian.gardena.mcp.domain.mapper.DeviceMapper
 import com.gardena.smartgarden.service.iapi.generated.ApiClient
