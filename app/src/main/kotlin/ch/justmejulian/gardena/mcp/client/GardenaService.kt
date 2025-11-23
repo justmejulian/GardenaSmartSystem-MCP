@@ -7,8 +7,10 @@ package ch.justmejulian.gardena.mcp.client
 import ch.justmejulian.gardena.mcp.domain.device.Device
 import ch.justmejulian.gardena.mcp.domain.mapper.DeviceMapper
 import com.gardena.smartgarden.service.iapi.generated.ApiClient
+import com.gardena.smartgarden.service.iapi.generated.api.ControlApi
 import com.gardena.smartgarden.service.iapi.generated.api.HealthCheckApi
 import com.gardena.smartgarden.service.iapi.generated.api.SnapshotApi
+import com.gardena.smartgarden.service.iapi.generated.model.CommandRequest
 import com.gardena.smartgarden.service.iapi.generated.model.LocationResponse
 import com.gardena.smartgarden.service.iapi.generated.model.LocationsResponse
 import kotlinx.coroutines.Dispatchers
@@ -102,6 +104,19 @@ class GardenaService(
       val locationDetails = getLocation(locationId)
       DeviceMapper.fromLocationResponse(locationDetails.included)
     }
+
+  /**
+   * Send a command to a device service.
+   *
+   * @param serviceId The ID of the service to send the command to
+   * @param commandRequest The command request containing the command type and parameters
+   */
+  suspend fun sendCommand(serviceId: String, commandRequest: CommandRequest) {
+    withContext(Dispatchers.IO) {
+      val controlApi = ControlApi(getClient())
+      controlApi.sendCommand(serviceId, commandRequest)
+    }
+  }
 
   /** Close the authentication client and clean up resources. */
   fun close() {
