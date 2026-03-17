@@ -8,8 +8,8 @@ import ch.justmejulian.gardena.mcp.server.tools.CommandTools
 import ch.justmejulian.gardena.mcp.server.tools.DeviceTools
 import ch.justmejulian.gardena.mcp.server.tools.LocationTools
 import ch.justmejulian.gardena.mcp.service.GardenaService
-import io.modelcontextprotocol.kotlin.sdk.Implementation
-import io.modelcontextprotocol.kotlin.sdk.ServerCapabilities
+import io.modelcontextprotocol.kotlin.sdk.types.Implementation
+import io.modelcontextprotocol.kotlin.sdk.types.ServerCapabilities
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
 import io.modelcontextprotocol.kotlin.sdk.server.StdioServerTransport

@@ -5,10 +5,13 @@
 package ch.justmejulian.gardena.mcp.server.tools
 
 import ch.justmejulian.gardena.mcp.service.GardenaService
-import io.modelcontextprotocol.kotlin.sdk.CallToolResult
-import io.modelcontextprotocol.kotlin.sdk.TextContent
-import io.modelcontextprotocol.kotlin.sdk.Tool
+import io.modelcontextprotocol.kotlin.sdk.server.ClientConnection
 import io.modelcontextprotocol.kotlin.sdk.server.Server
+import io.modelcontextprotocol.kotlin.sdk.types.CallToolRequest
+import io.modelcontextprotocol.kotlin.sdk.types.CallToolResult
+import io.modelcontextprotocol.kotlin.sdk.types.TextContent
+import io.modelcontextprotocol.kotlin.sdk.types.Tool
+import io.modelcontextprotocol.kotlin.sdk.types.ToolSchema
 import kotlinx.serialization.json.buildJsonObject
 
 /**
@@ -25,25 +28,32 @@ object LocationTools {
    * @param gardenaService Service for interacting with Gardena API
    */
   fun register(server: Server, gardenaService: GardenaService) {
-    server.addTool(
-      name = "list_locations",
-      description = "Get all locations for the authenticated user",
-      inputSchema = Tool.Input(properties = buildJsonObject {}, required = emptyList()),
-    ) { _ ->
-      val locations = gardenaService.getLocations()
-      val locationList =
-        locations.data.map { location ->
-          """
-          Location: ${location.attributes?.name ?: "Unknown"}
-          ID: ${location.id}
-          """
-            .trimIndent()
-        }
+    val handler: suspend (ClientConnection, CallToolRequest) -> CallToolResult =
+      { _, _ ->
+        val locations = gardenaService.getLocations()
+        val locationList =
+          locations.data.map { location ->
+            """
+            Location: ${location.attributes?.name ?: "Unknown"}
+            ID: ${location.id}
+            """
+              .trimIndent()
+          }
 
-      CallToolResult(
-        content = listOf(TextContent(text = locationList.joinToString("\n---\n"))),
-        isError = false,
-      )
-    }
+        CallToolResult(
+          content = listOf(TextContent(text = locationList.joinToString("\n---\n"))),
+          isError = false,
+        )
+      }
+
+    server.addTool(
+      tool =
+        Tool(
+          name = "list_locations",
+          description = "Get all locations for the authenticated user",
+          inputSchema = ToolSchema(properties = buildJsonObject {}, required = emptyList()),
+        ),
+      handler = handler,
+    )
   }
 }
