@@ -40,7 +40,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     
     // MCP SDK
-    implementation("io.modelcontextprotocol:kotlin-sdk:0.7.5")
+    implementation("io.modelcontextprotocol:kotlin-sdk:0.9.0")
     
     // SLF4J (logging)
     val slf4jVersion = "2.0.17"
