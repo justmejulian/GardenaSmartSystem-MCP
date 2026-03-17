@@ -9,7 +9,13 @@ import ch.justmejulian.gardena.mcp.util.Config
 import kotlinx.coroutines.runBlocking
 
 class App {
-  suspend fun run() {
+  suspend fun run(args: Array<String> = emptyArray()) {
+    val useSse = args.contains("--sse")
+    val port = args.indexOfFirst { it == "--port" }
+      .takeIf { it >= 0 }
+      ?.let { args.getOrNull(it + 1)?.toIntOrNull() }
+      ?: 8080
+
     try {
       // Load credentials from environment variables
       val credentials = Config.loadGardenaCredentials()
@@ -24,10 +30,15 @@ class App {
           apiConfig.apiBaseUrl,
         )
 
-      // Start MCP server - authentication will happen lazily on first tool call
-      System.err.println("Starting MCP server...")
       val mcpServer = MCPServer(gardenaService)
-      mcpServer.run()
+
+      if (useSse) {
+        System.err.println("Starting MCP server (SSE) on port $port...")
+        mcpServer.runSse(port)
+      } else {
+        System.err.println("Starting MCP server...")
+        mcpServer.run()
+      }
     } catch (e: IllegalStateException) {
       System.err.println("Configuration Error: ${e.message}")
     } catch (e: Exception) {
@@ -37,4 +48,5 @@ class App {
   }
 }
 
-fun main() = runBlocking { App().run() }
+fun main(args: Array<String>) = runBlocking { App().run(args) }
+
