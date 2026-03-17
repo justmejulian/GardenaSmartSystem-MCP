@@ -40,25 +40,20 @@ object DeviceTools {
    * attributes like battery level, connection status, and device state.
    */
   private fun registerGetDevices(server: Server, gardenaService: GardenaService) {
-    val handler: suspend (ClientConnection, CallToolRequest) -> CallToolResult =
-      { _, request ->
-        val locationId = request.arguments?.get("locationId")?.jsonPrimitive?.content
-
-        if (locationId == null) {
-          CallToolResult(
+    suspend fun handler(_: ClientConnection, request: CallToolRequest): CallToolResult {
+      val locationId =
+        request.arguments?.get("locationId")?.jsonPrimitive?.content
+          ?: return CallToolResult(
             content = listOf(TextContent(text = "Error: locationId is required")),
             isError = true,
           )
-        } else {
-          val devices = gardenaService.getDevices(locationId)
-          val deviceList = devices.map { it.toString() }
 
-          CallToolResult(
-            content = listOf(TextContent(text = deviceList.joinToString("\n---\n"))),
-            isError = false,
-          )
-        }
-      }
+      val devices = gardenaService.getDevices(locationId)
+      return CallToolResult(
+        content = listOf(TextContent(text = devices.joinToString("\n---\n") { it.toString() })),
+        isError = false,
+      )
+    }
 
     server.addTool(
       tool =
@@ -72,7 +67,7 @@ object DeviceTools {
               required = listOf("locationId"),
             ),
         ),
-      handler = handler,
+      handler = ::handler,
     )
   }
 }

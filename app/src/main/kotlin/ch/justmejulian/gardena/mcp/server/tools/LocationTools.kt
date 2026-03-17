@@ -28,23 +28,22 @@ object LocationTools {
    * @param gardenaService Service for interacting with Gardena API
    */
   fun register(server: Server, gardenaService: GardenaService) {
-    val handler: suspend (ClientConnection, CallToolRequest) -> CallToolResult =
-      { _, _ ->
-        val locations = gardenaService.getLocations()
-        val locationList =
-          locations.data.map { location ->
-            """
-            Location: ${location.attributes?.name ?: "Unknown"}
-            ID: ${location.id}
-            """
-              .trimIndent()
-          }
+    suspend fun handler(_: ClientConnection, _: CallToolRequest): CallToolResult {
+      val locations = gardenaService.getLocations()
+      val locationList =
+        locations.data.joinToString("\n---\n") { location ->
+          """
+          Location: ${location.attributes?.name ?: "Unknown"}
+          ID: ${location.id}
+          """
+            .trimIndent()
+        }
 
-        CallToolResult(
-          content = listOf(TextContent(text = locationList.joinToString("\n---\n"))),
-          isError = false,
-        )
-      }
+      return CallToolResult(
+        content = listOf(TextContent(text = locationList)),
+        isError = false,
+      )
+    }
 
     server.addTool(
       tool =
@@ -53,7 +52,7 @@ object LocationTools {
           description = "Get all locations for the authenticated user",
           inputSchema = ToolSchema(properties = buildJsonObject {}, required = emptyList()),
         ),
-      handler = handler,
+      handler = ::handler,
     )
   }
 }
