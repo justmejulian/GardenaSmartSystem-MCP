@@ -8,11 +8,14 @@ import ch.justmejulian.gardena.mcp.server.tools.CommandTools
 import ch.justmejulian.gardena.mcp.server.tools.DeviceTools
 import ch.justmejulian.gardena.mcp.server.tools.LocationTools
 import ch.justmejulian.gardena.mcp.service.GardenaService
+import io.ktor.server.cio.CIO
+import io.ktor.server.engine.embeddedServer
 import io.modelcontextprotocol.kotlin.sdk.Implementation
 import io.modelcontextprotocol.kotlin.sdk.ServerCapabilities
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
 import io.modelcontextprotocol.kotlin.sdk.server.StdioServerTransport
+import io.modelcontextprotocol.kotlin.sdk.server.mcp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.asSink
@@ -74,5 +77,19 @@ class MCPServer(private val gardenaService: GardenaService) {
     val done = Job()
     server.onClose { done.complete() }
     done.join()
+  }
+
+  /**
+   * Run the MCP server with SSE transport over HTTP.
+   *
+   * Starts a Ktor CIO HTTP server on the given [port] (default 8080) and exposes the MCP server
+   * via Server-Sent Events at `GET /sse` and `POST /sse`. This makes it possible to tunnel the
+   * server over a public URL with a tool like ngrok (`ngrok http <port>`).
+   */
+  fun runSse(port: Int = 8080) {
+      embeddedServer(CIO, host = "0.0.0.0", port = port) {
+        mcp { server }
+      }
+      .start(wait = true)
   }
 }
