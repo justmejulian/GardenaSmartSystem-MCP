@@ -8,6 +8,7 @@ import ch.justmejulian.gardena.mcp.server.tools.CommandTools
 import ch.justmejulian.gardena.mcp.server.tools.DeviceTools
 import ch.justmejulian.gardena.mcp.server.tools.LocationTools
 import ch.justmejulian.gardena.mcp.service.GardenaService
+import ch.justmejulian.gardena.mcp.util.OAuthConfig
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
 import io.modelcontextprotocol.kotlin.sdk.server.Server
@@ -29,7 +30,7 @@ import kotlinx.io.buffered
  * Context Protocol (MCP). It allows AI assistants to list locations, view devices, and send
  * commands to garden devices.
  */
-class MCPServer(private val gardenaService: GardenaService) {
+class MCPServer(private val gardenaService: GardenaService, private val oauthConfig: OAuthConfig? = null) {
 
   /**
    * The MCP server instance with basic configuration.
@@ -87,6 +88,14 @@ class MCPServer(private val gardenaService: GardenaService) {
    */
   fun runHttp(port: Int = 3000) {
     System.err.println("Starting HTTP server on port $port (endpoint: /mcp)...")
+    if (oauthConfig != null) {
+      System.err.println("OAuth resource: ${oauthConfig.resourceBaseUrl}")
+      if (oauthConfig.authServerUrls.isNotEmpty()) {
+        System.err.println("OAuth auth servers: ${oauthConfig.authServerUrls.joinToString()}")
+      }
+    } else {
+      System.err.println("OAuth config not set — protected resource metadata will not be served.")
+    }
     embeddedServer(CIO, port = port) { mcpStreamableHttp("/mcp") { server } }.start(wait = true)
   }
 }

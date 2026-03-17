@@ -4,11 +4,23 @@ data class GardenaCredentials(val clientId: String, val clientSecret: String)
 
 data class ApiConfig(val authBaseUrl: String, val apiBaseUrl: String)
 
+/**
+ * OAuth protected resource configuration (RFC 9728).
+ *
+ * @param resourceBaseUrl canonical public base URL of this MCP server — must match exactly in
+ *   token audience claims and the protected resource metadata document.
+ * @param authServerUrls list of authorization server issuer URLs that are trusted to issue tokens
+ *   for this resource.
+ */
+data class OAuthConfig(val resourceBaseUrl: String, val authServerUrls: List<String>)
+
 enum class EnvVar(val key: String) {
   GARDENA_CLIENT_ID("GARDENA_CLIENT_ID"),
   GARDENA_CLIENT_SECRET("GARDENA_CLIENT_SECRET"),
   GARDENA_AUTH_BASE_URL("GARDENA_AUTH_BASE_URL"),
   GARDENA_API_BASE_URL("GARDENA_API_BASE_URL"),
+  MCP_RESOURCE_BASE_URL("MCP_RESOURCE_BASE_URL"),
+  MCP_AUTH_SERVER_URL("MCP_AUTH_SERVER_URL"),
 }
 
 object Config {
@@ -66,6 +78,23 @@ object Config {
     return GardenaCredentials(
       clientId = envVars.getValue(EnvVar.GARDENA_CLIENT_ID.key),
       clientSecret = envVars.getValue(EnvVar.GARDENA_CLIENT_SECRET.key),
+    )
+  }
+
+  /**
+   * Loads OAuth protected resource configuration from environment variables.
+   *
+   * Both variables are optional — returns null when [MCP_RESOURCE_BASE_URL] is not set, which
+   * means OAuth metadata endpoints will not be served (appropriate for stdio / local use).
+   *
+   * @return OAuthConfig, or null if [MCP_RESOURCE_BASE_URL] is not configured
+   */
+  fun loadOAuthConfig(): OAuthConfig? {
+    val resourceBaseUrl = System.getenv(EnvVar.MCP_RESOURCE_BASE_URL.key)?.takeIf { it.isNotBlank() } ?: return null
+    val authServerUrl = System.getenv(EnvVar.MCP_AUTH_SERVER_URL.key)?.takeIf { it.isNotBlank() }
+    return OAuthConfig(
+      resourceBaseUrl = resourceBaseUrl.trimEnd('/'),
+      authServerUrls = listOfNotNull(authServerUrl),
     )
   }
 
