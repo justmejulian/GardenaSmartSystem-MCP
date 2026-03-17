@@ -17,7 +17,6 @@ class App {
       // Load credentials from environment variables
       val credentials = Config.loadGardenaCredentials()
       val apiConfig = Config.loadApiConfig()
-      val oauthConfig = Config.loadOAuthConfig()
 
       // Create Gardena service
       val gardenaService =
@@ -30,7 +29,7 @@ class App {
 
       // Start MCP server - authentication will happen lazily on first tool call
       System.err.println("Starting MCP server (transport=$transport)...")
-      val mcpServer = MCPServer(gardenaService, oauthConfig)
+      val mcpServer = MCPServer(gardenaService)
       when (transport) {
         "http" -> mcpServer.runHttp(port)
         "stdio" -> mcpServer.runStdio()
