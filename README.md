@@ -48,8 +48,12 @@ OpenJDK 64-Bit Server VM Microsoft-11933201 (build 21.0.8+9-LTS, mixed mode, sha
 You can override the default API endpoints for testing or development:
 
 - `GARDENA_AUTH_BASE_URL` - Authentication API base URL
-
 - `GARDENA_API_BASE_URL` - GARDENA Smart System API base URL
+
+#### HTTP transport / OAuth (only relevant when running with `--transport http`)
+
+- `MCP_RESOURCE_BASE_URL` - Canonical public base URL of this MCP server (e.g. `https://mcp.example.com`). When set, the server exposes the OAuth protected resource metadata endpoint and requires an `Authorization` header on all requests except that endpoint. Must match exactly what clients will use as the token audience — no trailing slash.
+- `MCP_AUTH_SERVER_URL` - Authorization server issuer URL (e.g. `https://auth.example.com`). Included in the protected resource metadata so clients know where to obtain tokens.
 
 ## Building the Project
 
@@ -84,12 +88,53 @@ This project uses [ktfmt](https://facebook.github.io/ktfmt/) with Google style f
 
 ## Running the MCP Server
 
-The application runs as an MCP (Model Context Protocol) server using stdio transport, making it compatible with AI assistants like Claude.
+The server supports two transports selected with the `--transport` flag. Defaults to `stdio`.
+
+### stdio (default)
+
+Compatible with AI assistants like Claude Desktop that spawn the server as a local process.
 
 ```bash
-# Run with your API credentials
 GARDENA_CLIENT_ID=your_client_id GARDENA_CLIENT_SECRET=your_client_secret ./gradlew run
 ```
+
+### HTTP
+
+Starts an embedded HTTP server. The MCP endpoint is at `/mcp` (streamable HTTP transport).
+
+```bash
+GARDENA_CLIENT_ID=your_client_id \
+  GARDENA_CLIENT_SECRET=your_client_secret \
+  ./gradlew run --args="--transport http --port 3000"
+```
+
+Use `--port` to override the default port of `3000`.
+
+#### Running with OAuth protection
+
+Set `MCP_RESOURCE_BASE_URL` to enable OAuth protected resource metadata. The server will then:
+
+1. Serve `GET /.well-known/oauth-protected-resource` (publicly, no auth required) — returns the RFC 9728 metadata document pointing at your authorization server.
+2. Reject every other request that has no `Authorization` header with `401 Unauthorized` and a `WWW-Authenticate` challenge header.
+
+```bash
+GARDENA_CLIENT_ID=your_client_id \
+  GARDENA_CLIENT_SECRET=your_client_secret \
+  MCP_RESOURCE_BASE_URL=https://mcp.example.com \
+  MCP_AUTH_SERVER_URL=https://auth.example.com \
+  java -jar app/build/libs/app-all.jar --transport http --port 3000
+```
+
+Example metadata response:
+
+```json
+{
+  "resource": "https://mcp.example.com",
+  "authorization_servers": ["https://auth.example.com"]
+}
+```
+
+> **HTTPS required** — deploy behind TLS in production. The canonical `MCP_RESOURCE_BASE_URL` must match exactly what clients use as the token audience; even a trailing slash difference will cause validation failures.
 
 ### Claude Desktop Configuration
 
