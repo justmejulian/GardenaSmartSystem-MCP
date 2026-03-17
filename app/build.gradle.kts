@@ -54,6 +54,7 @@ dependencies {
     
     // Ktor Server (required by MCP SDK)
     implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-cio:$ktorVersion")
     implementation("io.ktor:ktor-server-sse:$ktorVersion")
     
     // Jackson for JSON serialization (required by generated Java client)

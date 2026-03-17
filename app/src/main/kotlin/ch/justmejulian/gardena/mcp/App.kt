@@ -9,8 +9,11 @@ import ch.justmejulian.gardena.mcp.util.Config
 import kotlinx.coroutines.runBlocking
 
 class App {
-  suspend fun run() {
+  suspend fun run(args: Array<String>) {
     try {
+      val transport = args.argValue("--transport") ?: "stdio"
+      val port = args.argValue("--port")?.toIntOrNull() ?: 3000
+
       // Load credentials from environment variables
       val credentials = Config.loadGardenaCredentials()
       val apiConfig = Config.loadApiConfig()
@@ -25,9 +28,16 @@ class App {
         )
 
       // Start MCP server - authentication will happen lazily on first tool call
-      System.err.println("Starting MCP server...")
+      System.err.println("Starting MCP server (transport=$transport)...")
       val mcpServer = MCPServer(gardenaService)
-      mcpServer.run()
+      when (transport) {
+        "http" -> mcpServer.runHttp(port)
+        "stdio" -> mcpServer.runStdio()
+        else -> {
+          System.err.println("Unknown transport '$transport'. Use 'stdio' or 'http'.")
+          return
+        }
+      }
     } catch (e: IllegalStateException) {
       System.err.println("Configuration Error: ${e.message}")
     } catch (e: Exception) {
@@ -37,4 +47,10 @@ class App {
   }
 }
 
-fun main() = runBlocking { App().run() }
+/** Returns the value following [flag] in the args array, or null if not present. */
+private fun Array<String>.argValue(flag: String): String? {
+  val idx = indexOf(flag)
+  return if (idx >= 0 && idx + 1 < size) get(idx + 1) else null
+}
+
+fun main(args: Array<String>) = runBlocking { App().run(args) }

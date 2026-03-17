@@ -8,11 +8,14 @@ import ch.justmejulian.gardena.mcp.server.tools.CommandTools
 import ch.justmejulian.gardena.mcp.server.tools.DeviceTools
 import ch.justmejulian.gardena.mcp.server.tools.LocationTools
 import ch.justmejulian.gardena.mcp.service.GardenaService
-import io.modelcontextprotocol.kotlin.sdk.types.Implementation
-import io.modelcontextprotocol.kotlin.sdk.types.ServerCapabilities
+import io.ktor.server.cio.CIO
+import io.ktor.server.engine.embeddedServer
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
 import io.modelcontextprotocol.kotlin.sdk.server.StdioServerTransport
+import io.modelcontextprotocol.kotlin.sdk.server.mcpStreamableHttp
+import io.modelcontextprotocol.kotlin.sdk.types.Implementation
+import io.modelcontextprotocol.kotlin.sdk.types.ServerCapabilities
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.asSink
@@ -62,7 +65,7 @@ class MCPServer(private val gardenaService: GardenaService) {
    * The server uses standard input/output for communication, making it compatible with MCP clients
    * that spawn server processes (like Claude Desktop).
    */
-  fun run() = runBlocking {
+  fun runStdio() = runBlocking {
     val transport =
       StdioServerTransport(
         inputStream = System.`in`.asSource().buffered(),
@@ -74,5 +77,16 @@ class MCPServer(private val gardenaService: GardenaService) {
     val done = Job()
     server.onClose { done.complete() }
     done.join()
+  }
+
+  /**
+   * Run the MCP server with HTTP streamable transport.
+   *
+   * Starts an embedded Ktor HTTP server on the given port. The MCP endpoint is available at
+   * /mcp, using the MCP streamable HTTP transport (modern MCP spec).
+   */
+  fun runHttp(port: Int = 3000) {
+    System.err.println("Starting HTTP server on port $port (endpoint: /mcp)...")
+    embeddedServer(CIO, port = port) { mcpStreamableHttp("/mcp") { server } }.start(wait = true)
   }
 }
