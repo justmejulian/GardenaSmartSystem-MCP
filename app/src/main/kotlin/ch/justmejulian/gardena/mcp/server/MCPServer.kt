@@ -8,8 +8,11 @@ import ch.justmejulian.gardena.mcp.server.tools.CommandTools
 import ch.justmejulian.gardena.mcp.server.tools.DeviceTools
 import ch.justmejulian.gardena.mcp.server.tools.LocationTools
 import ch.justmejulian.gardena.mcp.service.GardenaService
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
 import io.modelcontextprotocol.kotlin.sdk.server.StdioServerTransport
@@ -30,6 +33,8 @@ import kotlinx.io.buffered
  * commands to garden devices.
  */
 class MCPServer(private val gardenaService: GardenaService) {
+
+  private val logger = KotlinLogging.logger {}
 
   /**
    * The MCP server instance with basic configuration.
@@ -66,6 +71,7 @@ class MCPServer(private val gardenaService: GardenaService) {
    * that spawn server processes (like Claude Desktop).
    */
   fun runStdio() = runBlocking {
+    logger.info { "Starting stdio transport" }
     val transport =
       StdioServerTransport(
         inputStream = System.`in`.asSource().buffered(),
@@ -75,7 +81,10 @@ class MCPServer(private val gardenaService: GardenaService) {
     server.createSession(transport)
 
     val done = Job()
-    server.onClose { done.complete() }
+    server.onClose {
+      logger.info { "MCP session closed" }
+      done.complete()
+    }
     done.join()
   }
 
@@ -86,7 +95,11 @@ class MCPServer(private val gardenaService: GardenaService) {
    * using the MCP streamable HTTP transport (modern MCP spec).
    */
   fun runHttp(port: Int = 3000) {
-    System.err.println("Starting HTTP server on port $port (endpoint: /mcp)...")
-    embeddedServer(CIO, port = port) { mcpStreamableHttp("/mcp") { server } }.start(wait = true)
+    logger.info { "Starting HTTP server on port $port (endpoint: /mcp)" }
+    embeddedServer(CIO, port = port) {
+        install(CallLogging)
+        mcpStreamableHttp("/mcp") { server }
+      }
+      .start(wait = true)
   }
 }

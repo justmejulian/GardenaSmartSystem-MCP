@@ -42,9 +42,9 @@ dependencies {
     // MCP SDK
     implementation("io.modelcontextprotocol:kotlin-sdk:0.9.0")
     
-    // SLF4J (logging)
-    val slf4jVersion = "2.0.17"
-    implementation("org.slf4j:slf4j-nop:$slf4jVersion")
+    // Logging
+    implementation("ch.qos.logback:logback-classic:1.5.18")
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
     
     // Ktor Client
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
@@ -56,6 +56,7 @@ dependencies {
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-cio:$ktorVersion")
     implementation("io.ktor:ktor-server-sse:$ktorVersion")
+    implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
     
     // Jackson for JSON serialization (required by generated Java client)
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")

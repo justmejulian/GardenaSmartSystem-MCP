@@ -6,9 +6,12 @@ package ch.justmejulian.gardena.mcp
 import ch.justmejulian.gardena.mcp.server.MCPServer
 import ch.justmejulian.gardena.mcp.service.GardenaService
 import ch.justmejulian.gardena.mcp.util.Config
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 
 class App {
+  private val logger = KotlinLogging.logger {}
+
   suspend fun run(args: Array<String>) {
     try {
       val transport = args.argValue("--transport") ?: "stdio"
@@ -28,21 +31,20 @@ class App {
         )
 
       // Start MCP server - authentication will happen lazily on first tool call
-      System.err.println("Starting MCP server (transport=$transport)...")
+      logger.info { "Starting MCP server (transport=$transport)" }
       val mcpServer = MCPServer(gardenaService)
       when (transport) {
         "http" -> mcpServer.runHttp(port)
         "stdio" -> mcpServer.runStdio()
         else -> {
-          System.err.println("Unknown transport '$transport'. Use 'stdio' or 'http'.")
+          logger.error { "Unknown transport '$transport'. Use 'stdio' or 'http'." }
           return
         }
       }
     } catch (e: IllegalStateException) {
-      System.err.println("Configuration Error: ${e.message}")
+      logger.error { "Configuration error: ${e.message}" }
     } catch (e: Exception) {
-      System.err.println("Error: ${e.message}")
-      e.printStackTrace()
+      logger.error(e) { "Unexpected error" }
     }
   }
 }
