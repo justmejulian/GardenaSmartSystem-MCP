@@ -28,7 +28,7 @@ object LocationTools {
    * @param gardenaService Service for interacting with Gardena API
    */
   fun register(server: Server, gardenaService: GardenaService) {
-    suspend fun handler(_: ClientConnection, _: CallToolRequest): CallToolResult {
+    suspend fun handler(connection: ClientConnection, request: CallToolRequest): CallToolResult {
       val locations = gardenaService.getLocations()
       val locationList =
         locations.data.joinToString("\n---\n") { location ->
@@ -39,10 +39,7 @@ object LocationTools {
             .trimIndent()
         }
 
-      return CallToolResult(
-        content = listOf(TextContent(text = locationList)),
-        isError = false,
-      )
+      return CallToolResult(content = listOf(TextContent(text = locationList)), isError = false)
     }
 
     server.addTool(

@@ -5,10 +5,10 @@
 package ch.justmejulian.gardena.mcp.server.tools
 
 import ch.justmejulian.gardena.mcp.service.GardenaService
-import io.modelcontextprotocol.kotlin.sdk.Implementation
-import io.modelcontextprotocol.kotlin.sdk.ServerCapabilities
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
+import io.modelcontextprotocol.kotlin.sdk.types.Implementation
+import io.modelcontextprotocol.kotlin.sdk.types.ServerCapabilities
 import kotlin.test.*
 
 class DeviceToolsTest {

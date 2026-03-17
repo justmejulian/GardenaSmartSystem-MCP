@@ -40,7 +40,7 @@ object DeviceTools {
    * attributes like battery level, connection status, and device state.
    */
   private fun registerGetDevices(server: Server, gardenaService: GardenaService) {
-    suspend fun handler(_: ClientConnection, request: CallToolRequest): CallToolResult {
+    suspend fun handler(connection: ClientConnection, request: CallToolRequest): CallToolResult {
       val locationId =
         request.arguments?.get("locationId")?.jsonPrimitive?.content
           ?: return CallToolResult(

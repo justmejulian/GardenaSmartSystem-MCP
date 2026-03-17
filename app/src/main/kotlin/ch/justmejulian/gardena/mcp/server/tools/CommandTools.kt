@@ -30,7 +30,7 @@ object CommandTools {
    * @param gardenaService Service for interacting with Gardena API
    */
   fun register(server: Server, gardenaService: GardenaService) {
-    suspend fun handler(_: ClientConnection, request: CallToolRequest): CallToolResult {
+    suspend fun handler(connection: ClientConnection, request: CallToolRequest): CallToolResult {
       val locationId = request.arguments?.get("locationId")?.jsonPrimitive?.content
       val deviceId = request.arguments?.get("deviceId")?.jsonPrimitive?.content
       val command = request.arguments?.get("command")?.jsonPrimitive?.content
@@ -38,7 +38,8 @@ object CommandTools {
 
       if (locationId == null || deviceId == null || command == null) {
         return CallToolResult(
-          content = listOf(TextContent(text = "Error: locationId, deviceId and command are required")),
+          content =
+            listOf(TextContent(text = "Error: locationId, deviceId and command are required")),
           isError = true,
         )
       }
@@ -54,7 +55,9 @@ object CommandTools {
         device.supportedCommands[command]
           ?: return CallToolResult(
             content =
-              listOf(TextContent(text = "Error: device with id $deviceId does not support $command")),
+              listOf(
+                TextContent(text = "Error: device with id $deviceId does not support $command")
+              ),
             isError = true,
           )
 
