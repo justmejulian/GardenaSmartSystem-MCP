@@ -37,7 +37,7 @@ object CommandTools {
               put("locationId", buildJsonObject { put("type", "string") })
               put("deviceId", buildJsonObject { put("type", "string") })
               put("command", buildJsonObject { put("type", "string") })
-              put("seconds", buildJsonObject { put("type", "int") })
+              put("seconds", buildJsonObject { put("type", "integer") })
             },
           required = listOf("locationId", "deviceId", "command"),
         ),
