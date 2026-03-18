@@ -14,6 +14,7 @@ import com.gardena.smartgarden.service.iapi.generated.api.SnapshotApi
 import com.gardena.smartgarden.service.iapi.generated.model.CommandRequest
 import com.gardena.smartgarden.service.iapi.generated.model.LocationResponse
 import com.gardena.smartgarden.service.iapi.generated.model.LocationsResponse
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -28,6 +29,7 @@ class GardenaService(
   private val authBaseUrl: String = "https://api.authentication.husqvarnagroup.dev/v1",
   private val apiBaseUrl: String = "https://api.smart.gardena.dev/v2",
 ) {
+  private val logger = KotlinLogging.logger {}
   private val authClient = HusqvarnaApiClient(clientId, clientSecret, authBaseUrl)
   private var apiClient: ApiClient? = null
   private var accessToken: String? = null
@@ -48,8 +50,10 @@ class GardenaService(
    * Authenticate and initialize the Gardena API client. Called automatically on first API access.
    */
   private suspend fun authenticate() {
+    logger.info { "Authenticating with Gardena API" }
     val tokenResponse = authClient.authenticate()
     accessToken = tokenResponse.access_token
+    logger.info { "Authentication successful, token expires in ${tokenResponse.expires_in}s" }
 
     // Create and configure API client with Bearer token and required headers
     apiClient =
@@ -71,6 +75,7 @@ class GardenaService(
         healthCheckApi.getHealth()
         true
       } catch (e: Exception) {
+        logger.warn { "Health check failed: ${e.message}" }
         false
       }
     }
@@ -78,6 +83,7 @@ class GardenaService(
   /** Get all locations for the authenticated user. */
   suspend fun getLocations(): LocationsResponse =
     withContext(Dispatchers.IO) {
+      logger.debug { "Fetching locations" }
       val snapshotApi = SnapshotApi(getClient())
       snapshotApi.listLocations()
     }
@@ -90,6 +96,7 @@ class GardenaService(
    */
   suspend fun getLocation(locationId: String): LocationResponse =
     withContext(Dispatchers.IO) {
+      logger.debug { "Fetching location $locationId" }
       val snapshotApi = SnapshotApi(getClient())
       snapshotApi.listLocation(locationId)
     }
@@ -129,8 +136,10 @@ class GardenaService(
    */
   suspend fun sendCommand(serviceId: String, commandRequest: CommandRequest) {
     withContext(Dispatchers.IO) {
+      logger.info { "Sending command to service $serviceId: ${commandRequest.data}" }
       val controlApi = ControlApi(getClient())
       controlApi.sendCommand(serviceId, commandRequest)
+      logger.debug { "Command sent successfully to service $serviceId" }
     }
   }
 

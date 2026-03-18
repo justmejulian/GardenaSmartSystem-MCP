@@ -6,11 +6,17 @@ package ch.justmejulian.gardena.mcp
 import ch.justmejulian.gardena.mcp.server.MCPServer
 import ch.justmejulian.gardena.mcp.service.GardenaService
 import ch.justmejulian.gardena.mcp.util.Config
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 
 class App {
-  suspend fun run() {
+  private val logger = KotlinLogging.logger {}
+
+  suspend fun run(args: Array<String>) {
     try {
+      val transport = args.argValue("--transport") ?: "stdio"
+      val port = args.argValue("--port")?.toIntOrNull() ?: 3000
+
       // Load credentials from environment variables
       val credentials = Config.loadGardenaCredentials()
       val apiConfig = Config.loadApiConfig()
@@ -25,16 +31,28 @@ class App {
         )
 
       // Start MCP server - authentication will happen lazily on first tool call
-      System.err.println("Starting MCP server...")
+      logger.info { "Starting MCP server (transport=$transport)" }
       val mcpServer = MCPServer(gardenaService)
-      mcpServer.run()
+      when (transport) {
+        "sse" -> mcpServer.runSse(port)
+        "stdio" -> mcpServer.runStdio()
+        else -> {
+          logger.error { "Unknown transport '$transport'. Use 'stdio' or 'sse'." }
+          return
+        }
+      }
     } catch (e: IllegalStateException) {
-      System.err.println("Configuration Error: ${e.message}")
+      logger.error { "Configuration error: ${e.message}" }
     } catch (e: Exception) {
-      System.err.println("Error: ${e.message}")
-      e.printStackTrace()
+      logger.error(e) { "Unexpected error" }
     }
   }
 }
 
-fun main() = runBlocking { App().run() }
+/** Returns the value following [flag] in the args array, or null if not present. */
+private fun Array<String>.argValue(flag: String): String? {
+  val idx = indexOf(flag)
+  return if (idx >= 0 && idx + 1 < size) get(idx + 1) else null
+}
+
+fun main(args: Array<String>) = runBlocking { App().run(args) }
