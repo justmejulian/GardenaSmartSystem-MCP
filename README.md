@@ -50,7 +50,7 @@ You can override the default API endpoints for testing or development:
 - `GARDENA_AUTH_BASE_URL` - Authentication API base URL
 - `GARDENA_API_BASE_URL` - GARDENA Smart System API base URL
 
-#### HTTP transport / OAuth (only relevant when running with `--transport http`)
+#### HTTP transport / OAuth (only relevant when running with `--transport sse`)
 
 - `MCP_RESOURCE_BASE_URL` - Canonical public base URL of this MCP server (e.g. `https://mcp.example.com`). When set, the server exposes the OAuth protected resource metadata endpoint and requires an `Authorization` header on all requests except that endpoint. Must match exactly what clients will use as the token audience — no trailing slash.
 - `MCP_AUTH_SERVER_URL` - Authorization server issuer URL (e.g. `https://auth.example.com`). Included in the protected resource metadata so clients know where to obtain tokens.
@@ -105,7 +105,7 @@ Starts an embedded HTTP server. The MCP endpoint is at `/mcp` (streamable HTTP t
 ```bash
 GARDENA_CLIENT_ID=your_client_id \
   GARDENA_CLIENT_SECRET=your_client_secret \
-  ./gradlew run --args="--transport http --port 3000"
+  ./gradlew run --args="--transport sse --port 3000"
 ```
 
 Use `--port` to override the default port of `3000`.
@@ -122,7 +122,7 @@ GARDENA_CLIENT_ID=your_client_id \
   GARDENA_CLIENT_SECRET=your_client_secret \
   MCP_RESOURCE_BASE_URL=https://mcp.example.com \
   MCP_AUTH_SERVER_URL=https://auth.example.com \
-  java -jar app/build/libs/app-all.jar --transport http --port 3000
+  java -jar app/build/libs/app-all.jar --transport sse --port 3000
 ```
 
 Example metadata response:

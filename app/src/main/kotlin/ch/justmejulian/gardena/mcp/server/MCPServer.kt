@@ -9,14 +9,12 @@ import ch.justmejulian.gardena.mcp.server.tools.DeviceTools
 import ch.justmejulian.gardena.mcp.server.tools.LocationTools
 import ch.justmejulian.gardena.mcp.service.GardenaService
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.server.application.install
-import io.ktor.server.cio.CIO
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.plugins.calllogging.CallLogging
+import io.ktor.server.cio.*
+import io.ktor.server.engine.*
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
 import io.modelcontextprotocol.kotlin.sdk.server.StdioServerTransport
-import io.modelcontextprotocol.kotlin.sdk.server.mcpStreamableHttp
+import io.modelcontextprotocol.kotlin.sdk.server.mcp
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
 import io.modelcontextprotocol.kotlin.sdk.types.ServerCapabilities
 import kotlinx.coroutines.Job
@@ -89,17 +87,16 @@ class MCPServer(private val gardenaService: GardenaService) {
   }
 
   /**
-   * Run the MCP server with HTTP streamable transport.
+   * Run the MCP server with SSE transport over HTTP.
    *
-   * Starts an embedded Ktor HTTP server on the given port. The MCP endpoint is available at /mcp,
-   * using the MCP streamable HTTP transport (modern MCP spec).
+   * Starts a Ktor CIO HTTP server on the given [port] (default 3000) and exposes the MCP server
+   * via Server-Sent Events at `GET /sse` and `POST /sse`. This makes it possible to tunnel the
+   * server over a public URL with a tool like ngrok (`ngrok http <port>`).
    */
-  fun runHttp(port: Int = 3000) {
-    logger.info { "Starting HTTP server on port $port (endpoint: /mcp)" }
-    embeddedServer(CIO, port = port) {
-        install(CallLogging)
-        mcpStreamableHttp("/mcp") { server }
-      }
+  fun runSse(port: Int = 3000) {
+    embeddedServer(CIO, host = "0.0.0.0", port = port) {
+      mcp { server }
+    }
       .start(wait = true)
   }
 }

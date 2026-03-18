@@ -34,10 +34,10 @@ class App {
       logger.info { "Starting MCP server (transport=$transport)" }
       val mcpServer = MCPServer(gardenaService)
       when (transport) {
-        "http" -> mcpServer.runHttp(port)
+        "sse" -> mcpServer.runSse(port)
         "stdio" -> mcpServer.runStdio()
         else -> {
-          logger.error { "Unknown transport '$transport'. Use 'stdio' or 'http'." }
+          logger.error { "Unknown transport '$transport'. Use 'stdio' or 'sse'." }
           return
         }
       }
