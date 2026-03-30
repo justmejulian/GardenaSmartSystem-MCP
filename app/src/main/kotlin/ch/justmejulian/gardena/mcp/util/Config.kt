@@ -1,13 +1,11 @@
 package ch.justmejulian.gardena.mcp.util
 
-data class GardenaCredentials(val clientId: String, val clientSecret: String)
+data class GardenaCredentials(val apiKey: String)
 
-data class ApiConfig(val authBaseUrl: String, val apiBaseUrl: String)
+data class ApiConfig(val apiBaseUrl: String)
 
 enum class EnvVar(val key: String) {
   GARDENA_CLIENT_ID("GARDENA_CLIENT_ID"),
-  GARDENA_CLIENT_SECRET("GARDENA_CLIENT_SECRET"),
-  GARDENA_AUTH_BASE_URL("GARDENA_AUTH_BASE_URL"),
   GARDENA_API_BASE_URL("GARDENA_API_BASE_URL"),
 }
 
@@ -60,13 +58,9 @@ object Config {
    * @throws IllegalStateException if credentials are not set
    */
   fun loadGardenaCredentials(): GardenaCredentials {
-    val envVars =
-      loadEnvVariables(listOf(EnvVar.GARDENA_CLIENT_ID.key, EnvVar.GARDENA_CLIENT_SECRET.key))
+    val envVars = loadEnvVariables(listOf(EnvVar.GARDENA_CLIENT_ID.key))
 
-    return GardenaCredentials(
-      clientId = envVars.getValue(EnvVar.GARDENA_CLIENT_ID.key),
-      clientSecret = envVars.getValue(EnvVar.GARDENA_CLIENT_SECRET.key),
-    )
+    return GardenaCredentials(apiKey = envVars.getValue(EnvVar.GARDENA_CLIENT_ID.key))
   }
 
   /**
@@ -76,11 +70,6 @@ object Config {
    */
   fun loadApiConfig(): ApiConfig {
     return ApiConfig(
-      authBaseUrl =
-        loadOptionalEnvVariable(
-          EnvVar.GARDENA_AUTH_BASE_URL.key,
-          "https://api.authentication.husqvarnagroup.dev/v1",
-        ),
       apiBaseUrl =
         loadOptionalEnvVariable(EnvVar.GARDENA_API_BASE_URL.key, "https://api.smart.gardena.dev/v2"),
     )

@@ -31,7 +31,7 @@ class LocationToolsTest {
       }
 
     // Create service (won't be used for actual API calls in these tests)
-    service = GardenaService("test-id", "test-secret")
+    service = GardenaService(authorizationHeader = "test-bearer-token", apiKey = "test-api-key")
   }
 
   @AfterTest

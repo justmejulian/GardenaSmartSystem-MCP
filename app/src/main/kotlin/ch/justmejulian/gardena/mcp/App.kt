@@ -4,7 +4,6 @@
 package ch.justmejulian.gardena.mcp
 
 import ch.justmejulian.gardena.mcp.server.MCPServer
-import ch.justmejulian.gardena.mcp.service.GardenaService
 import ch.justmejulian.gardena.mcp.util.Config
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
@@ -21,21 +20,20 @@ class App {
       val credentials = Config.loadGardenaCredentials()
       val apiConfig = Config.loadApiConfig()
 
-      // Create Gardena service
-      val gardenaService =
-        GardenaService(
-          credentials.clientId,
-          credentials.clientSecret,
-          apiConfig.authBaseUrl,
-          apiConfig.apiBaseUrl,
-        )
+      val mcpServer = MCPServer(apiKey = credentials.apiKey, apiBaseUrl = apiConfig.apiBaseUrl)
 
-      // Start MCP server - authentication will happen lazily on first tool call
       logger.info { "Starting MCP server (transport=$transport)" }
-      val mcpServer = MCPServer(gardenaService)
       when (transport) {
-        "sse" -> mcpServer.runSse(port)
-        "stdio" -> mcpServer.runStdio()
+        "sse" -> {
+          // Bearer token is extracted per-session from the Authorization header — no token needed here
+          mcpServer.runSse(port)
+        }
+        "stdio" -> {
+          val bearerToken =
+            args.argValue("--bearer-token")
+              ?: throw IllegalStateException("--bearer-token <token> is required for stdio transport")
+          mcpServer.runStdio(bearerToken)
+        }
         else -> {
           logger.error { "Unknown transport '$transport'. Use 'stdio' or 'sse'." }
           return

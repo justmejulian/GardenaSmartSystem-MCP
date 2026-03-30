@@ -16,7 +16,7 @@ This API allows you to monitor and control your smart garden devices.
 
 - Java 21
 - Gradle 9.2.0 (included via wrapper)
-- GARDENA API credentials (Client ID and Client Secret)
+- A valid OAuth bearer token for the GARDENA API and your API key (Client ID)
 
 ### Verify Java Installation
 
@@ -34,20 +34,20 @@ OpenJDK 64-Bit Server VM Microsoft-11933201 (build 21.0.8+9-LTS, mixed mode, sha
 2. Sign up or log in
 3. Go to "Applications" → "Create Application"
 4. Fill in the application details
-5. Copy your **Client ID** and **Client Secret**
+5. Complete the OAuth flow externally to obtain a **Bearer Token**
+6. Copy your **Client ID** — this is used as the API key (`X-Api-Key` header)
 
 ## Configuration
 
 ### Required Environment Variables
 
-- `GARDENA_CLIENT_ID` - Your GARDENA API Client ID
-- `GARDENA_CLIENT_SECRET` - Your GARDENA API Client Secret
+- `GARDENA_CLIENT_ID` - Your GARDENA API Client ID (used as the `X-Api-Key` header; will be replaced by a dedicated API key later)
+- `GARDENA_BEARER_TOKEN` - Your OAuth bearer token (obtained externally via the OAuth flow)
 
 ### Optional Environment Variables
 
 You can override the default API endpoints for testing or development:
 
-- `GARDENA_AUTH_BASE_URL` - Authentication API base URL
 - `GARDENA_API_BASE_URL` - GARDENA Smart System API base URL
 
 #### HTTP transport / OAuth (only relevant when running with `--transport sse`)
@@ -95,7 +95,7 @@ The server supports two transports selected with the `--transport` flag. Default
 Compatible with AI assistants like Claude Desktop that spawn the server as a local process.
 
 ```bash
-GARDENA_CLIENT_ID=your_client_id GARDENA_CLIENT_SECRET=your_client_secret ./gradlew run
+GARDENA_CLIENT_ID=your_client_id GARDENA_BEARER_TOKEN=your_bearer_token ./gradlew run
 ```
 
 ### HTTP
@@ -104,7 +104,7 @@ Starts an embedded HTTP server. The MCP endpoint is at `/mcp` (streamable HTTP t
 
 ```bash
 GARDENA_CLIENT_ID=your_client_id \
-  GARDENA_CLIENT_SECRET=your_client_secret \
+  GARDENA_BEARER_TOKEN=your_bearer_token \
   ./gradlew run --args="--transport sse --port 3000"
 ```
 
@@ -119,7 +119,7 @@ Set `MCP_RESOURCE_BASE_URL` to enable OAuth protected resource metadata. The ser
 
 ```bash
 GARDENA_CLIENT_ID=your_client_id \
-  GARDENA_CLIENT_SECRET=your_client_secret \
+  GARDENA_BEARER_TOKEN=your_bearer_token \
   MCP_RESOURCE_BASE_URL=https://mcp.example.com \
   MCP_AUTH_SERVER_URL=https://auth.example.com \
   java -jar app/build/libs/app-all.jar --transport sse --port 3000
@@ -162,13 +162,13 @@ Then add the following configuration to your Claude Desktop config file:
       ],
       "env": {
         "GARDENA_CLIENT_ID": "your_client_id_here",
-        "GARDENA_CLIENT_SECRET": "your_client_secret_here"
+        "GARDENA_BEARER_TOKEN": "your_bearer_token_here"
       }
     }
   }
 }
 ```
 
-Replace `/absolute/path/to/GardenaSmartSystem-MCP` with the actual path to this repository on your system, and replace the client ID and secret with your GARDENA API credentials.
+Replace `/absolute/path/to/GardenaSmartSystem-MCP` with the actual path to this repository on your system, and replace the bearer token and client ID with your GARDENA API credentials.
 
 **Note**: Using the standalone JAR provides instant startup compared to running via Gradle, which is important for Claude Desktop's connection timeout.

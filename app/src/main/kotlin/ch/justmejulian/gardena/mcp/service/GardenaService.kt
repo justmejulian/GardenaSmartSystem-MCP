@@ -4,7 +4,6 @@
  */
 package ch.justmejulian.gardena.mcp.service
 
-import ch.justmejulian.gardena.mcp.client.HusqvarnaApiClient
 import ch.justmejulian.gardena.mcp.domain.device.Device
 import ch.justmejulian.gardena.mcp.domain.mapper.DeviceMapper
 import com.gardena.smartgarden.service.iapi.generated.ApiClient
@@ -21,49 +20,23 @@ import kotlinx.coroutines.withContext
 /**
  * Service for interacting with the Gardena Smart System API.
  *
- * Handles authentication and provides access to Gardena API operations.
+ * Uses a pre-obtained OAuth bearer token for authentication and the provided API key for the
+ * X-Api-Key header.
  */
 class GardenaService(
-  private val clientId: String,
-  private val clientSecret: String,
-  private val authBaseUrl: String = "https://api.authentication.husqvarnagroup.dev/v1",
-  private val apiBaseUrl: String = "https://api.smart.gardena.dev/v2",
+  private val authorizationHeader: String,
+  private val apiKey: String,
+  private val apiBaseUrl: String = "https://api-test.smart.gardena.dev",
 ) {
   private val logger = KotlinLogging.logger {}
-  private val authClient = HusqvarnaApiClient(clientId, clientSecret, authBaseUrl)
-  private var apiClient: ApiClient? = null
-  private var accessToken: String? = null
 
-  /**
-   * Get or create the authenticated API client.
-   *
-   * Authenticates on first access and caches the client for subsequent calls.
-   */
-  private suspend fun getClient(): ApiClient {
-    if (apiClient == null) {
-      authenticate()
-    }
-    return apiClient!!
-  }
-
-  /**
-   * Authenticate and initialize the Gardena API client. Called automatically on first API access.
-   */
-  private suspend fun authenticate() {
-    logger.info { "Authenticating with Gardena API" }
-    val tokenResponse = authClient.authenticate()
-    accessToken = tokenResponse.access_token
-    logger.info { "Authentication successful, token expires in ${tokenResponse.expires_in}s" }
-
-    // Create and configure API client with Bearer token and required headers
-    apiClient =
-      ApiClient().apply {
-        updateBaseUri(apiBaseUrl)
-        setRequestInterceptor { requestBuilder ->
-          requestBuilder.header("Authorization", "Bearer ${accessToken}")
-          requestBuilder.header("X-Api-Key", clientId)
-          requestBuilder.header("Accept", "application/vnd.api+json")
-        }
+  private val apiClient: ApiClient =
+    ApiClient().apply {
+      updateBaseUri(apiBaseUrl)
+      setRequestInterceptor { requestBuilder ->
+        requestBuilder.header("Authorization", authorizationHeader)
+        requestBuilder.header("X-Api-Key", apiKey)
+        requestBuilder.header("Accept", "application/vnd.api+json")
       }
   }
 
@@ -71,7 +44,7 @@ class GardenaService(
   suspend fun healthCheck(): Boolean =
     withContext(Dispatchers.IO) {
       try {
-        val healthCheckApi = HealthCheckApi(getClient())
+        val healthCheckApi = HealthCheckApi(apiClient)
         healthCheckApi.getHealth()
         true
       } catch (e: Exception) {
@@ -84,7 +57,7 @@ class GardenaService(
   suspend fun getLocations(): LocationsResponse =
     withContext(Dispatchers.IO) {
       logger.debug { "Fetching locations" }
-      val snapshotApi = SnapshotApi(getClient())
+      val snapshotApi = SnapshotApi(apiClient)
       snapshotApi.listLocations()
     }
 
@@ -97,7 +70,7 @@ class GardenaService(
   suspend fun getLocation(locationId: String): LocationResponse =
     withContext(Dispatchers.IO) {
       logger.debug { "Fetching location $locationId" }
-      val snapshotApi = SnapshotApi(getClient())
+      val snapshotApi = SnapshotApi(apiClient)
       snapshotApi.listLocation(locationId)
     }
 
@@ -137,7 +110,7 @@ class GardenaService(
   suspend fun sendCommand(serviceId: String, commandRequest: CommandRequest) {
     withContext(Dispatchers.IO) {
       logger.info { "Sending command to service $serviceId: ${commandRequest.data}" }
-      val controlApi = ControlApi(getClient())
+      val controlApi = ControlApi(apiClient)
       controlApi.sendCommand(serviceId, commandRequest)
       logger.debug { "Command sent successfully to service $serviceId" }
     }
@@ -145,6 +118,6 @@ class GardenaService(
 
   /** Close the authentication client and clean up resources. */
   fun close() {
-    authClient.close()
+   // TODO clean up resources
   }
 }

@@ -50,7 +50,7 @@ class GardenaServiceTest {
 
   @Test
   fun `GardenaService can be instantiated with default URLs`() {
-    val service = GardenaService("test-client-id", "test-client-secret")
+    val service = GardenaService("test-bearer-token", "test-api-key")
 
     // Just verify the service can be created
     // We don't call any methods that would trigger authentication
@@ -58,15 +58,13 @@ class GardenaServiceTest {
   }
 
   @Test
-  fun `GardenaService can be instantiated with custom URLs`() {
-    val customAuthUrl = "https://custom-auth.example.com"
+  fun `GardenaService can be instantiated with custom API URL`() {
     val customApiUrl = "https://custom-api.example.com"
 
     val service =
       GardenaService(
-        clientId = "test-client-id",
-        clientSecret = "test-client-secret",
-        authBaseUrl = customAuthUrl,
+        authorizationHeader = "test-bearer-token",
+        apiKey = "test-api-key",
         apiBaseUrl = customApiUrl,
       )
 
